@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../feature/dashboard/presentation/dashboard_view.dart';
 import 'logic/home_cubit.dart';
 import 'widgets/custom_bottom_nav_bar.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,10 +17,10 @@ class HomePage extends StatelessWidget {
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent({super.key});
+  const _HomeContent({Key? key}) : super(key: key);
 
   final List<Widget> _views = const [
-    Center(child: Text('لوحة التحكم (Dashboard)')),
+    DashboardView(),
     Center(child: Text('الطلبات (Requests)')),
     Center(child: Text('المدفوعات (Payments)')),
     Center(child: Text('الأعدادات (Settings)')),

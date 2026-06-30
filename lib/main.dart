@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Amd Admin',
       // Force RTL directionality for the entire app since it's an Arabic app
       builder: (context, child) {
