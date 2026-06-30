@@ -12,36 +12,43 @@ class DashboardHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // User Profile Info (First child -> goes to the Right in RTL)
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.white,
-                backgroundImage: NetworkImage(
-                  'https://i.pravatar.cc/100?img=11',
+          Expanded(
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.white,
+                  backgroundImage: NetworkImage(
+                    'https://i.pravatar.cc/100?img=11',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'مرحبا، محمد احمد',
-                    style: AppTextStyles.readexSemiBold20.copyWith(
-                      color: Colors.white,
-                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'مرحبا، محمد احمد',
+                          style: AppTextStyles.readexSemiBold20.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'مدير النظام',
+                        style: AppTextStyles.readexRegular14.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'مدير النظام',
-                    style: AppTextStyles.readexRegular14.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-
+          const SizedBox(width: 12),
           // Notification Icon (Second child -> goes to the Left in RTL)
           Container(
             padding: const EdgeInsets.all(8),

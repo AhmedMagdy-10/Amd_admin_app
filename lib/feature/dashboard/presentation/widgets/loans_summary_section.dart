@@ -51,21 +51,23 @@ class LoansSummarySection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     // Legend (First child -> Right in RTL)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLegendItem(
-                          title: 'تم الدفع',
-                          subtitle: '120 قرض',
-                          color: const Color(0xFF4A4499),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildLegendItem(
-                          title: 'لم يتم الدفع',
-                          subtitle: '20 قرض',
-                          color: Colors.grey.shade300,
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLegendItem(
+                            title: 'تم الدفع',
+                            subtitle: '120 قرض',
+                            color: const Color(0xFF4A4499),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildLegendItem(
+                            title: 'لم يتم الدفع',
+                            subtitle: '20 قرض',
+                            color: Colors.grey.shade300,
+                          ),
+                        ],
+                      ),
                     ),
                     // Donut Chart (Second child -> Left in RTL)
                     SizedBox(
@@ -135,21 +137,31 @@ class LoansSummarySection extends StatelessWidget {
           width: 10,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: AppTextStyles.readexMedium12.copyWith(
-                color: Colors.grey.shade500,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  style: AppTextStyles.readexMedium12.copyWith(
+                    color: Colors.grey.shade500,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: AppTextStyles.readexMedium16.copyWith(color: Colors.black87),
-            ),
-          ],
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  subtitle,
+                  style: AppTextStyles.readexMedium16.copyWith(
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

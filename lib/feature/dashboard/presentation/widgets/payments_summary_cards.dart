@@ -79,29 +79,32 @@ class PaymentsSummaryCards extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                amount,
-                style: AppTextStyles.readexMedium32.copyWith(
-                  color: const Color(0xFF4A4499),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 6.0,
-                ), // increased padding slightly for larger font
-                child: Text(
-                  currency,
-                  style: AppTextStyles.readexMedium12.copyWith(
-                    color: Colors.grey.shade600,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  amount,
+                  style: AppTextStyles.readexMedium32.copyWith(
+                    color: const Color(0xFF4A4499),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 6.0,
+                  ), // increased padding slightly for larger font
+                  child: Text(
+                    currency,
+                    style: AppTextStyles.readexMedium12.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -85,36 +85,40 @@ class RequestsStatusSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          count,
-                          style: AppTextStyles.readexMedium32.copyWith(
-                            color: Colors.black87,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            count,
+                            style: AppTextStyles.readexMedium32.copyWith(
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6.0),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.trending_up,
-                                color: Color(0xFF2ECA7D),
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                percentage,
-                                style: AppTextStyles.readexMedium12.copyWith(
-                                  color: const Color(0xFF2ECA7D),
+                          const SizedBox(width: 12),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6.0),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.trending_up,
+                                  color: Color(0xFF2ECA7D),
+                                  size: 16,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  percentage,
+                                  style: AppTextStyles.readexMedium12.copyWith(
+                                    color: const Color(0xFF2ECA7D),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),

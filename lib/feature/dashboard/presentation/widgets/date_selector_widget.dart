@@ -18,7 +18,8 @@ class DateSelectorWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Right Text and Icon (First child -> Right in RTL)
-            Row(
+          Expanded(
+            child: Row(
               children: [
                 const Icon(
                   Icons.calendar_today_outlined,
@@ -26,27 +27,34 @@ class DateSelectorWidget extends StatelessWidget {
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'تاريخ العرض',
-                      style: AppTextStyles.readexRegular12.copyWith(
-                        color: Colors.white70,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'تاريخ العرض',
+                        style: AppTextStyles.readexRegular12.copyWith(
+                          color: Colors.white70,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'اليوم 24 اكتوبر 2026',
-                      style: AppTextStyles.readexMedium16.copyWith(
-                        color: Colors.white,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          'اليوم 24 اكتوبر 2026',
+                          style: AppTextStyles.readexMedium16.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
-
-            // Left Button (Second child -> Left in RTL)
+          ),
+          const SizedBox(width: 8),
+          // Left Button (Second child -> Left in RTL)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(

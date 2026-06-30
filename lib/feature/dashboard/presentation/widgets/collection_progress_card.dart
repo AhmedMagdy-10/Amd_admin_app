@@ -77,15 +77,19 @@ class CollectionProgressCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildAmountInfo(
-                  title: 'المسدد',
-                  amount: '816,000',
-                  color: const Color(0xFF4A4499),
+                Expanded(
+                  child: _buildAmountInfo(
+                    title: 'المسدد',
+                    amount: '816,000',
+                    color: const Color(0xFF4A4499),
+                  ),
                 ),
-                _buildAmountInfo(
-                  title: 'المتبقي',
-                  amount: '384,000',
-                  color: Colors.grey.shade400,
+                Expanded(
+                  child: _buildAmountInfo(
+                    title: 'المتبقي',
+                    amount: '384,000',
+                    color: Colors.grey.shade400,
+                  ),
                 ),
               ],
             ),
@@ -166,33 +170,41 @@ class CollectionProgressCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: AppTextStyles.readexMedium12.copyWith(
-                color: Colors.grey.shade500,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  style: AppTextStyles.readexMedium12.copyWith(
+                    color: Colors.grey.shade500,
+                  ),
+                ),
               ),
-            ),
-            Row(
-              children: [
-                Text(
-                  amount,
-                  style: AppTextStyles.readexSemiBold20.copyWith(
-                    color: Colors.black87,
-                  ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  children: [
+                    Text(
+                      amount,
+                      style: AppTextStyles.readexSemiBold20.copyWith(
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'ر.س',
+                      style: AppTextStyles.readexRegular12.copyWith(
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  'ر.س',
-                  style: AppTextStyles.readexRegular12.copyWith(
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ],
     );
