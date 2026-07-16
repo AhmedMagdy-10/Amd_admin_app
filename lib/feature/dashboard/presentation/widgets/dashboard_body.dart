@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'collection_progress_card.dart';
-import 'dashboard_header.dart';
+import '../../../../core/widgets/custom_header.dart';
 import 'date_selector_widget.dart';
 import 'loans_summary_section.dart';
 import 'payments_summary_cards.dart';
@@ -33,7 +33,15 @@ class DashboardBody extends StatelessWidget {
                 bottom: false,
                 child: Column(
                   children: const [
-                    DashboardHeader(),
+                    CustomHeader(
+                      name: 'مرحبا، محمد احمد',
+                      role: 'مدير النظام',
+                      textColor: Colors.white,
+                      subtitleColor: Colors.white70,
+                      iconColor: Colors.white,
+                      iconBgColor: Color(0x26FFFFFF),
+                      notificationCount: 0,
+                    ),
                     SizedBox(height: 16),
                     DateSelectorWidget(),
                     SizedBox(height: 24),
