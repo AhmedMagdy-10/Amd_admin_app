@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/app_text_styles.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../logic/requests_cubit.dart';
+
+import '../request_details_page.dart';
+
 class RequestItemCard extends StatelessWidget {
   final String name;
   final String requestId;
@@ -19,180 +24,236 @@ class RequestItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: AppTextStyles.readexSemiBold20.copyWith(
-                        color: const Color(0xFF2A2375),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          requestId,
-                          style: AppTextStyles.readexRegular12.copyWith(
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade400,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          date,
-                          style: AppTextStyles.readexRegular12.copyWith(
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Options Menu (...)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.more_horiz,
-                  color: Color(0xFF2A2375),
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Status Pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(20),
+    return GestureDetector(
+      onTap: () {
+        final cubit = BlocProvider.of<RequestsCubit>(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider.value(
+              value: cubit,
+              child: RequestDetailsPage(requestId: requestId, name: name),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF2994A), // Orange dot
-                    shape: BoxShape.circle,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: AppTextStyles.readexSemiBold20.copyWith(
+                          color: const Color(0xFF2A2375),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              requestId,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.readexRegular12.copyWith(
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              date,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.readexRegular12.copyWith(
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  status,
-                  style: AppTextStyles.readexMedium12.copyWith(
-                    color: const Color(0xFF2A2375),
+                // Options Menu (...)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.more_horiz,
+                    color: Color(0xFF2A2375),
+                    size: 20,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            // Status Pill
+            Builder(
+              builder: (context) {
+                Color dotColor = const Color(0xFFF2994A);
+                Color textColor = const Color(0xFF2A2375);
+                Color pillBgColor = Colors.grey.shade50;
+                String statusArabic = status;
 
-          // Stepper
-          _buildStepper(),
+                if (status == 'approved' || status == 'eligibility_approved' || status == 'request_approved' || status == 'transfer_approved' || status == 'مقبول' || status == 'موافق عليه' || status == 'مكتملة' || status == 'مكتمل') {
+                  dotColor = const Color(0xFF2ECA7D);
+                  textColor = const Color(0xFF2ECA7D);
+                  pillBgColor = const Color(0xFFE8FAF0);
+                  statusArabic = 'مقبول';
+                } else if (status == 'not approved' || status == 'مرفوض') {
+                  dotColor = const Color(0xFFF44336);
+                  textColor = const Color(0xFFF44336);
+                  pillBgColor = const Color(0xFFFEECEB);
+                  statusArabic = 'مرفوض';
+                } else if (status == 'تقديم طلب' || status == 'تقديم الطلب' || status == 'request_pending' || status == 'request_pendding') {
+                  dotColor = const Color(0xFF3F51B5);
+                  textColor = const Color(0xFF3F51B5);
+                  pillBgColor = const Color(0xFFE8EAF6);
+                  statusArabic = 'تقديم الطلب';
+                } else if (status == 'انتظار تسليم المبلغ' || status == 'transfer_pending') {
+                  dotColor = const Color(0xFF00838F);
+                  textColor = const Color(0xFF00838F);
+                  pillBgColor = const Color(0xFFE0F7FA);
+                  statusArabic = 'انتظار تسليم المبلغ';
+                } else {
+                  dotColor = const Color(0xFFF2994A);
+                  textColor = const Color(0xFFF2994A);
+                  pillBgColor = const Color(0xFFFFF4E5);
+                  statusArabic = 'جاري المراجعة';
+                }
 
-          const SizedBox(height: 24),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: pillBgColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: dotColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        statusArabic,
+                        style: AppTextStyles.readexMedium12.copyWith(
+                          color: textColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
 
-          // Footer
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Attachments Pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+            // Stepper
+            _buildStepper(),
+
+            const SizedBox(height: 24),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+
+            // Footer
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Attachments Pill
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.attach_file,
+                        color: Color(0xFF2A2375),
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'مرفقات',
+                        style: AppTextStyles.readexMedium14.copyWith(
+                          color: const Color(0xFF2A2375),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '3',
+                        style: AppTextStyles.readexMedium14.copyWith(
+                          color: const Color(0xFF2A2375),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
+                // View Details
+                Row(
                   children: [
+                    Text(
+                      'عرض التفاصيل',
+                      style: AppTextStyles.readexMedium14.copyWith(
+                        color: const Color(0xFF2A2375),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     const Icon(
-                      Icons.attach_file,
+                      Icons.arrow_back_ios_new,
                       color: Color(0xFF2A2375),
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'مرفقات',
-                      style: AppTextStyles.readexMedium14.copyWith(
-                        color: const Color(0xFF2A2375),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '3',
-                      style: AppTextStyles.readexMedium14.copyWith(
-                        color: const Color(0xFF2A2375),
-                      ),
+                      size: 14,
                     ),
                   ],
                 ),
-              ),
-              // View Details
-              Row(
-                children: [
-                  Text(
-                    'عرض التفاصيل',
-                    style: AppTextStyles.readexMedium14.copyWith(
-                      color: const Color(0xFF2A2375),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Color(0xFF2A2375),
-                    size: 14,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -215,7 +276,7 @@ class RequestItemCard extends StatelessWidget {
             _buildConnector(isActive: currentStep >= 2),
             // Step 2: تقديم الطلب
             _buildStepItem(
-              title: 'تقديم الطلب',
+              title: 'تقديم طلب',
               number: '2',
               icon: Icons.receipt_long,
               isActive: currentStep >= 2,
@@ -236,10 +297,8 @@ class RequestItemCard extends StatelessWidget {
               title: 'مكتملة',
               number: '4',
               icon: Icons.check,
-              isActive:
-                  false, // In design it's light green but not "active" in the stepper flow
+              isActive: currentStep >= 4,
               activeColor: const Color(0xFF2ECA7D),
-              forceGreen: true,
               isLast: true,
             ),
           ],
@@ -261,10 +320,7 @@ class RequestItemCard extends StatelessWidget {
     Color bgColor;
     Color iconCol;
 
-    if (forceGreen) {
-      bgColor = Colors.grey.shade200;
-      iconCol = Colors.grey.shade500;
-    } else if (isActive) {
+    if (isActive) {
       bgColor = activeColor;
       iconCol = Colors.white;
     } else {
@@ -304,8 +360,8 @@ class RequestItemCard extends StatelessWidget {
 
   Widget _buildConnector({required bool isActive}) {
     return Expanded(
+      flex: 3,
       child: TweenAnimationBuilder<double>(
-        // Animate ALL lines from 0 to 1 so they draw themselves when the page opens
         tween: Tween<double>(begin: 0.0, end: 1.0),
         duration: const Duration(milliseconds: 1200),
         curve: Curves.easeInOut,

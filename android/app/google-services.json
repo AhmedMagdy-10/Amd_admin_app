@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "283459907128",
+    "project_id": "amd-app-bbd5c",
+    "storage_bucket": "amd-app-bbd5c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283459907128:android:88a3902127b6a051e500cd",
+        "android_client_info": {
+          "package_name": "com.example.amad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuva7DY2tjwudrR_75PW9pCVzFAipI9vQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283459907128:android:8c2632001811dd23e500cd",
+        "android_client_info": {
+          "package_name": "com.example.amd_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuva7DY2tjwudrR_75PW9pCVzFAipI9vQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
