@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'feature/home/home_page.dart';
 import 'feature/requests/data/repositories/requests_repository.dart';
 import 'feature/requests/logic/requests_cubit.dart';
+import 'feature/splash/presentation/views/splash_view.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           );
         },
 
-        home: const HomePage(),
+        home: const SplashView(),
       ),
     );
   }

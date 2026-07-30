@@ -10,18 +10,21 @@ import '../../../../core/utils/app_text_styles.dart';
 import 'package:lottie/lottie.dart';
 
 class RequestDetailsPage extends StatelessWidget {
-  final String requestId;
+  /// Firestore document ID — guaranteed unique, used for exact lookup.
+  final String docId;
+  /// Firestore collection name — needed together with docId for uniqueness.
+  final String collection;
   final String name;
 
   const RequestDetailsPage({
     super.key,
-    required this.requestId,
+    required this.docId,
+    required this.collection,
     required this.name,
   });
 
   @override
   Widget build(BuildContext context) {
-    final normalizedId = requestId.replaceAll('#', '');
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -80,13 +83,9 @@ class RequestDetailsPage extends StatelessWidget {
             }
 
             if (state is RequestsLoaded) {
-              // Find the matching model by requestId or document id
+              // Exact lookup by Firestore docId + collection — unambiguous across all collections.
               final model = state.allRequests.cast<RequestModel?>().firstWhere(
-                (r) =>
-                    r!.requestId == requestId ||
-                    r.requestId == normalizedId ||
-                    r.id == requestId ||
-                    r.id == normalizedId,
+                (r) => r!.id == docId && r.collection == collection,
                 orElse: () => null,
               );
 
@@ -134,7 +133,7 @@ class RequestDetailsPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _buildBottomActionBar(context, model, normalizedId),
+                  _buildBottomActionBar(context, model, docId),
                 ],
               );
             }

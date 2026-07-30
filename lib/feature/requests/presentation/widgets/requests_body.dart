@@ -74,7 +74,9 @@ class RequestsBody extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: RequestItemCard(
                           name:        model.name,
-                          requestId:   model.requestId,
+                          docId:       model.id,
+                          collection:  model.collection,
+                          displayId:   model.requestId,
                           date:        model.date,
                           status:      model.status,
                           currentStep: model.currentStep,

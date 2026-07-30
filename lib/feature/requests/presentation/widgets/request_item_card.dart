@@ -8,7 +8,12 @@ import '../request_details_page.dart';
 
 class RequestItemCard extends StatelessWidget {
   final String name;
-  final String requestId;
+  /// Firestore document ID — unique key for this request.
+  final String docId;
+  /// Firestore collection name — paired with docId for exact lookup.
+  final String collection;
+  /// Human-readable request ID shown in the card UI (e.g. "#REQ-10255").
+  final String displayId;
   final String date;
   final String status;
   final int currentStep;
@@ -16,7 +21,9 @@ class RequestItemCard extends StatelessWidget {
   const RequestItemCard({
     super.key,
     required this.name,
-    required this.requestId,
+    required this.docId,
+    required this.collection,
+    required this.displayId,
     required this.date,
     required this.status,
     required this.currentStep,
@@ -32,7 +39,7 @@ class RequestItemCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => BlocProvider.value(
               value: cubit,
-              child: RequestDetailsPage(requestId: requestId, name: name),
+              child: RequestDetailsPage(docId: docId, collection: collection, name: name),
             ),
           ),
         );
@@ -72,7 +79,7 @@ class RequestItemCard extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              requestId,
+                              displayId,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.readexRegular12.copyWith(
                                 color: Colors.grey.shade500,
