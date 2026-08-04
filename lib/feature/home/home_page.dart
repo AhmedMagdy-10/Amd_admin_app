@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../feature/dashboard/presentation/dashboard_view.dart';
 import '../../feature/requests/presentation/requests_view.dart';
+import '../../feature/payments/presentation/payments_view.dart';
 import 'logic/home_cubit.dart';
 import 'widgets/custom_bottom_nav_bar.dart';
 
@@ -22,8 +23,8 @@ class _HomeContent extends StatelessWidget {
 
   final List<Widget> _views = const [
     DashboardView(),
-    const RequestsView(),
-    const Center(child: Text('المدفوعات (Payments)')),
+    RequestsView(),
+    PaymentsView(),
     Center(child: Text('الأعدادات (Settings)')),
   ];
 

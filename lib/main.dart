@@ -7,12 +7,21 @@ import 'feature/requests/logic/requests_cubit.dart';
 import 'feature/splash/presentation/views/splash_view.dart';
 import 'firebase_options.dart';
 
+import 'core/services/firebase_messaging_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Start the single Firestore listener for the entire app lifetime
   RequestsRepository.instance.init();
+
+  // Initialize background & foreground FCM handlers and request permissions
+  try {
+    await FirebaseMessagingService().initialize();
+  } catch (e) {
+    print('Error initializing Firebase Messaging: $e');
+  }
 
   runApp(const MyApp());
 }

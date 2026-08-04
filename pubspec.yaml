@@ -42,6 +42,11 @@ dependencies:
   lottie: ^3.1.2
   fluttertoast: ^8.2.8
   flutter_animate: ^4.5.2
+  firebase_storage: ^13.4.5
+  image_picker: ^1.1.2
+  flutter_local_notifications: ^18.0.1
+  googleapis_auth: ^1.6.0
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

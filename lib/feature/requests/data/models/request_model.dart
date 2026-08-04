@@ -202,15 +202,116 @@ class RequestModel {
 
   /// Raw data submitted by the client in Step 2 (stored under requestData sub-map).
   Map<String, dynamic> get step2RawData {
-    final v = raw['requestData'] ?? raw['step2Data'] ?? raw['step2'];
-    return _safeMap(v);
+    final v = raw['finalRequestData'] ?? raw['requestData'] ?? raw['step2Data'] ?? raw['step2'];
+    if (v is Map) return _safeMap(v);
+    // If step2 data is flattened at top-level raw map
+    return raw;
   }
+
+  /// Formatted map of all Step 2 fields ("تقديم طلب") submitted by the client.
+  Map<String, String> get step2DisplayData {
+    final map = <String, String>{};
+    final data = step2RawData;
+
+    String val(List<String> keys) {
+      for (final k in keys) {
+        final v = data[k] ?? raw[k];
+        if (v != null && v.toString().trim().isNotEmpty) {
+          return v.toString().trim();
+        }
+      }
+      return '';
+    }
+
+    void put(String label, List<String> keys, {String suffix = ''}) {
+      final v = val(keys);
+      if (v.isNotEmpty) {
+        map[label] = suffix.isNotEmpty ? '$v $suffix' : v;
+      }
+    }
+
+    // Name & General
+    put('الاسم الأول', ['firstName', 'first_name', 'الاسم الأول', 'الاسم الاول', 'اسم_الاول', 'اسم الأول']);
+    put('الاسم الأخير', ['secondName', 'lastName', 'last_name', 'familyName', 'الاسم الأخير', 'الاسم الاخير', 'اسم_الاخير', 'اسم الأخير']);
+    put('المدينة', ['city', 'cityName', 'المدينة', 'مدينة']);
+    put('السلعة المختارة', ['commodityType', 'commodity', 'product', 'productType', 'item', 'selectedItem', 'السلعة', 'السلعة المختارة', 'اختر السلعة', 'نوع السلعة']);
+
+    // Financial
+    put('مبلغ التمويل', ['financingAmount', 'loanAmount', 'amount', 'requestedAmount', 'مبلغ التمويل', 'مبلغ المطلوب', 'مبلغ_التمويل'], suffix: 'ر.س');
+    put('مصدر الدخل', ['sourceOfIncome', 'incomeSource', 'salarySource', 'sourceOfIncome', 'income_source', 'مصدر الدخل', 'مصدر_الدخل']);
+    put('الجنسية', ['nationality', 'citizenType', 'الجنسية', 'جنسية']);
+    put('الدخل الشهري', ['monthlyIncome', 'netSalary', 'income', 'monthlySalary', 'الدخل الشهري', 'الدخل_الشهري', 'راتب', 'الراتب'], suffix: 'ر.س');
+    put('الالتزامات البنكية', ['bankObligations', 'bankCommitments', 'currentLoanInstallments', 'commitments', 'الالتزامات البنكية', 'الالتزامات_البنكية', 'التزامات'], suffix: 'ر.س');
+
+    // Service Suspension
+    final stopVal = data['hasStoppedServices'] ?? data['hasServiceSuspension'] ?? data['serviceSuspension'] ?? data['isServiceStopped'] ?? data['serviceStop'] ??
+                     raw['hasStoppedServices'] ?? raw['hasServiceSuspension'] ?? raw['serviceSuspension'] ?? raw['هل يوجد ايقاف خدمات؟'] ?? raw['هل يوجد ايقاف خدمات'];
+    if (stopVal != null) {
+      if (stopVal == true || stopVal.toString() == 'true' || stopVal.toString() == 'نعم') {
+        map['إيقاف خدمات'] = 'نعم';
+      } else if (stopVal == false || stopVal.toString() == 'false' || stopVal.toString() == 'لا') {
+        map['إيقاف خدمات'] = 'لا';
+      } else {
+        map['إيقاف خدمات'] = stopVal.toString();
+      }
+    }
+
+    // Bank Account & Address
+    put('رقم الحساب البنكي (IBAN)', ['iban', 'bankAccount', 'accountNumber', 'bankAccountNumber', 'رقم الحساب البنكي', 'الآيبان', 'الايبان', 'حساب_البنك']);
+    put('العنوان الوطني (الرئيسي)', ['nationalAddress1', 'address', 'nationalAddress', 'addressLine1', 'streetAddress', 'العنوان الوطني', 'العنوان الرئيسي', 'عنوان_الوطني', 'العنوان_الوطني']);
+    put('العنوان الوطني (الإضافي)', ['nationalAddress2', 'secondaryAddress', 'addressLine2', 'additionalAddress', 'العنوان الإضافي', 'العنوان الوطني الإضافي', 'عنوان_اضافي']);
+    put('المدينة (العنوان)', ['nationalCity', 'addressCity', 'city', 'المدينة', 'مدينة_العنوان']);
+    put('المحافظة / المنطقة', ['nationalGovernment', 'district', 'governorate', 'state', 'region', 'province', 'المحافظة', 'المنطقة', 'محافظة', 'منطقة']);
+
+    return map;
+  }
+
+  /// Document & Image attachments uploaded in Step 2.
+  Map<String, String> get step2Images {
+    final map = <String, String>{};
+    final data = step2RawData;
+
+    void check(String label, List<String> keys) {
+      for (final k in keys) {
+        final v = data[k] ?? raw[k] ?? images[k];
+        if (v != null && v.toString().trim().isNotEmpty && v.toString().startsWith('http')) {
+          map[label] = v.toString().trim();
+          break;
+        }
+      }
+    }
+
+    check('صورة الهوية (وجه أمامي)', ['idFront', 'idCardImage', 'idImage', 'nationalIdImage', 'identityImage', 'idFrontImage']);
+    check('صورة إثبات الدخل الشهري', ['proofOfIncome', 'incomeProof', 'incomeProofImage', 'salaryProofImage', 'incomeImage', 'salaryCertificate']);
+
+    return map;
+  }
+
 
   /// Raw data submitted by the client in Step 3 (stored under transferData sub-map).
   Map<String, dynamic> get step3RawData {
     final v = raw['transferData'] ?? raw['step3Data'] ?? raw['step3'];
     return _safeMap(v);
   }
+
+  /// URL of the payment receipt image uploaded by the user in Step 3.
+  /// Checks multiple possible field paths.
+  String? get paymentReceiptUrl {
+    // Top-level field first
+    final topLevel = raw['receiptUrl'] ?? raw['paymentReceipt'] ??
+        raw['receipt_url'] ?? raw['transferReceipt'];
+    if (topLevel != null && topLevel.toString().isNotEmpty) {
+      return topLevel.toString();
+    }
+    // Nested inside transferData / step3Data
+    final nested = step3RawData['receiptUrl'] ?? step3RawData['paymentReceipt'] ??
+        step3RawData['receipt_url'] ?? step3RawData['transferReceipt'];
+    if (nested != null && nested.toString().isNotEmpty) {
+      return nested.toString();
+    }
+    return null;
+  }
+
 
   // ── Private helpers ──────────────────────────────────────────────────────────
 

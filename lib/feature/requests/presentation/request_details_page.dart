@@ -1867,8 +1867,10 @@ class _StepDetailSheet extends StatelessWidget {
   // ─── Step 2 ───────────────────────────────────────────────────────────────────
 
   Widget _buildStep2() {
-    final raw = model.step2RawData;
-    if (raw.isEmpty) {
+    final step2Data = model.step2DisplayData;
+    final step2Images = model.step2Images;
+
+    if (step2Data.isEmpty && step2Images.isEmpty) {
       return Container(
         margin: const EdgeInsets.only(top: 16),
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
@@ -1889,18 +1891,55 @@ class _StepDetailSheet extends StatelessWidget {
         ),
       );
     }
-    final entries = raw.entries
-        .where((e) => e.value != null && e.value.toString().isNotEmpty)
-        .map((e) => MapEntry(e.key, e.value.toString()))
-        .toList();
-    return _sectionCard('بيانات الخطوة الثانية', Icons.receipt_long, const Color(0xFF3F51B5), entries);
+
+    // Group 1: Loan & Financial Data
+    final financialKeys = {
+      'الاسم الأول',
+      'الاسم الأخير',
+      'المدينة',
+      'السلعة المختارة',
+      'مبلغ التمويل',
+      'مصدر الدخل',
+      'الجنسية',
+      'الدخل الشهري',
+      'الالتزامات البنكية',
+    };
+
+    // Group 2: Account & Address Data
+    final addressKeys = {
+      'رقم الحساب البنكي (IBAN)',
+      'إيقاف خدمات',
+      'العنوان الوطني (الرئيسي)',
+      'العنوان الوطني (الإضافي)',
+      'المدينة (العنوان)',
+      'المحافظة / المنطقة',
+    };
+
+    List<MapEntry<String, String>> pick(Set<String> keys) =>
+        step2Data.entries.where((e) => keys.contains(e.key)).toList();
+
+    return Column(
+      children: [
+        _sectionCard('معلومات التمويل والطلب', Icons.monetization_on_outlined, const Color(0xFF3F51B5), pick(financialKeys)),
+        const SizedBox(height: 14),
+        _sectionCard('الحساب البنكي والعنوان الوطني', Icons.map_outlined, const Color(0xFF00838F), pick(addressKeys)),
+        if (step2Images.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _attachmentsCard(step2Images),
+        ],
+      ],
+    );
   }
+
+
 
   // ─── Step 3 — shows steps 1 & 2 summary ──────────────────────────────────────
 
   Widget _buildStep3() {
     final s1 = model.step1DisplayData;
-    final s2raw = model.step2RawData;
+    final s2 = model.step2DisplayData;
+    final s2Images = model.step2Images;
+    final receiptUrl = model.paymentReceiptUrl;
 
     final step1Entries = ['الاسم الكامل','رقم الجوال','رقم الهوية','نوع الوظيفة',
                            'الراتب الصافي','مبلغ القرض المطلوب','مدة القرض']
@@ -1908,10 +1947,7 @@ class _StepDetailSheet extends StatelessWidget {
         .map((k) => MapEntry(k, s1[k]!))
         .toList();
 
-    final step2Entries = s2raw.entries
-        .where((e) => e.value != null && e.value.toString().isNotEmpty)
-        .map((e) => MapEntry(e.key, e.value.toString()))
-        .toList();
+    final step2Entries = s2.entries.toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1932,7 +1968,7 @@ class _StepDetailSheet extends StatelessWidget {
               Container(
                 width: 46, height: 46,
                 decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18), shape: BoxShape.circle),
+                    color: Colors.white.withValues(alpha: 0.18), shape: BoxShape.circle),
                 child: const Icon(Icons.summarize, color: Colors.white),
               ),
               const SizedBox(width: 12),
@@ -1958,6 +1994,10 @@ class _StepDetailSheet extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
+        // ── PAYMENT RECEIPT CARD ───────────────────────────────────────────────
+        _buildReceiptCard(receiptUrl),
+        const SizedBox(height: 20),
+
         // ── STEP 1 section ────────────────────────────────────────────────────
         _stepSectionHeader(num: 1, title: 'جاري المراجعة', color: const Color(0xFF7C6DFA)),
         const SizedBox(height: 12),
@@ -1972,7 +2012,7 @@ class _StepDetailSheet extends StatelessWidget {
         // ── STEP 2 section ────────────────────────────────────────────────────
         _stepSectionHeader(num: 2, title: 'تقديم الطلب', color: const Color(0xFF3F51B5)),
         const SizedBox(height: 12),
-        step2Entries.isEmpty
+        step2Entries.isEmpty && s2Images.isEmpty
             ? Container(
                 padding: const EdgeInsets.all(16),
                 decoration: _cardDecor(),
@@ -1986,12 +2026,273 @@ class _StepDetailSheet extends StatelessWidget {
                   ],
                 ),
               )
-            : _sectionCard('بيانات الخطوة الثانية', Icons.receipt_long,
-                const Color(0xFF3F51B5), step2Entries),
+            : Column(
+                children: [
+                  if (step2Entries.isNotEmpty)
+                    _sectionCard('بيانات الخطوة الثانية', Icons.receipt_long,
+                        const Color(0xFF3F51B5), step2Entries),
+                  if (s2Images.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _attachmentsCard(s2Images),
+                  ],
+                ],
+              ),
         const SizedBox(height: 32),
       ],
     );
   }
+
+  /// Card showing the payment receipt the user uploaded.
+  Widget _buildReceiptCard(String? receiptUrl) {
+    final hasReceipt = receiptUrl != null && receiptUrl.isNotEmpty;
+
+    return GestureDetector(
+      onTap: hasReceipt
+          ? () => Navigator.push(
+                // use rootNavigator to escape the bottom sheet
+                parentContext,
+                MaterialPageRoute(
+                  builder: (_) => _FullscreenImagePage(
+                    url: receiptUrl,
+                    title: 'إيصال التحويل',
+                  ),
+                ),
+              )
+          : null,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: hasReceipt
+                ? const Color(0xFF00838F).withValues(alpha: 0.4)
+                : Colors.grey.shade200,
+            width: hasReceipt ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Card header ─────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38, height: 38,
+                    decoration: BoxDecoration(
+                      color: hasReceipt
+                          ? const Color(0xFF00838F).withValues(alpha: 0.1)
+                          : Colors.grey.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      hasReceipt ? Icons.receipt_long : Icons.hourglass_empty_rounded,
+                      size: 18,
+                      color: hasReceipt
+                          ? const Color(0xFF00838F)
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'إيصال تحويل المبلغ',
+                          style: TextStyle(
+                            fontFamily: 'ReadexPro',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          hasReceipt
+                              ? 'اضغط لعرض الإيصال كاملاً'
+                              : 'في انتظار رفع الإيصال من المستخدم',
+                          style: TextStyle(
+                            fontFamily: 'ReadexPro',
+                            fontSize: 11,
+                            color: hasReceipt
+                                ? const Color(0xFF00838F)
+                                : Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (hasReceipt)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0F7F8),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.visibility_outlined,
+                              size: 13, color: Color(0xFF00838F)),
+                          SizedBox(width: 4),
+                          Text('عرض',
+                              style: TextStyle(
+                                fontFamily: 'ReadexPro',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF00838F),
+                              )),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // ── Divider ────────────────────────────────────────────────────
+            const Divider(height: 1, color: Color(0xFFF0F0F5)),
+
+            // ── Receipt thumbnail ──────────────────────────────────────────
+            if (hasReceipt)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20)),
+                child: Stack(
+                  children: [
+                    Image.network(
+                      receiptUrl,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return Container(
+                          height: 200,
+                          color: Colors.grey.shade50,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                                color: Color(0xFF00838F), strokeWidth: 2),
+                          ),
+                        );
+                      },
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 100,
+                        color: Colors.grey.shade50,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.broken_image_outlined,
+                                  size: 32, color: Colors.grey.shade300),
+                              const SizedBox(height: 8),
+                              Text('تعذّر تحميل الصورة',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 12,
+                                      fontFamily: 'ReadexPro')),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Tap-to-expand overlay
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.25),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 10,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.open_in_full,
+                                    size: 13, color: Colors.white),
+                                SizedBox(width: 5),
+                                Text('اضغط لعرض الإيصال كاملاً',
+                                    style: TextStyle(
+                                      fontFamily: 'ReadexPro',
+                                      fontSize: 11,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              // Waiting placeholder
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.grey.shade200,
+                        style: BorderStyle.solid),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.upload_file_outlined,
+                          size: 36, color: Colors.grey.shade300),
+                      const SizedBox(height: 8),
+                      Text(
+                        'لم يتم رفع الإيصال بعد',
+                        style: TextStyle(
+                          fontFamily: 'ReadexPro',
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   // ─── Shared builders ─────────────────────────────────────────────────────────
 
@@ -2153,34 +2454,47 @@ class _StepDetailSheet extends StatelessWidget {
             child: Column(
               children: images.entries.map((e) {
                 final label = labels[e.key] ?? e.key;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8F8FF),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade100),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 34, height: 34,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4A4499).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      parentContext,
+                      MaterialPageRoute(
+                        builder: (_) => _FullscreenImagePage(
+                          url: e.value,
+                          title: label,
                         ),
-                        child: const Icon(Icons.insert_drive_file_outlined,
-                            color: Color(0xFF4A4499), size: 17),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(label,
-                            style: const TextStyle(
-                                fontFamily: 'ReadexPro', fontSize: 13,
-                                fontWeight: FontWeight.w600, color: Colors.black87)),
-                      ),
-                      const Icon(Icons.open_in_new, color: Color(0xFF4A4499), size: 15),
-                    ],
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F8FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade100),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 34, height: 34,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4A4499).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.insert_drive_file_outlined,
+                              color: Color(0xFF4A4499), size: 17),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(label,
+                              style: const TextStyle(
+                                  fontFamily: 'ReadexPro', fontSize: 13,
+                                  fontWeight: FontWeight.w600, color: Colors.black87)),
+                        ),
+                        const Icon(Icons.open_in_new, color: Color(0xFF4A4499), size: 15),
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
