@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/models/request_model.dart';
 import '../logic/requests_cubit.dart';
+import '../../chat/data/chat_client.dart';
+import '../../chat/presentation/chat_details_view.dart';
 import '../logic/requests_state.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
 import '../../../../core/utils/app_text_styles.dart';
@@ -1252,17 +1254,31 @@ class RequestDetailsPage extends StatelessWidget {
         child: Row(
           children: [
             // Chat Button
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: const Icon(
-                Icons.chat_bubble_outline,
-                color: Color(0xFF2A2375),
+            GestureDetector(
+              onTap: () {
+                final clientId = model.raw['userId'] ?? 'CUSTOMER-001';
+                final clientName = model.name;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatDetailsView(
+                      client: ChatClient(id: clientId, name: clientName),
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: const Icon(
+                  Icons.chat_bubble_outline,
+                  color: Color(0xFF2A2375),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -1387,6 +1403,7 @@ class RequestDetailsPage extends StatelessWidget {
                       await service.sendAcceptNotification(
                         clientId: model.raw['clientId'] ?? 'default_client',
                         requestId: model.requestId,
+                        currentStep: model.currentStep,
                       );
 
                       if (context.mounted) {
@@ -2529,7 +2546,18 @@ class _StepDetailSheet extends StatelessWidget {
               icon: Icons.chat_bubble_outline,
               bg: Colors.white,
               fg: const Color(0xFF2A2375),
-              onTap: () {},
+              onTap: () {
+                final clientId = model.raw['userId'] ?? 'CUSTOMER-001';
+                final clientName = model.name;
+                Navigator.push(
+                  sheetCtx,
+                  MaterialPageRoute(
+                    builder: (context) => ChatDetailsView(
+                      client: ChatClient(id: clientId, name: clientName),
+                    ),
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 10),
             // Reject

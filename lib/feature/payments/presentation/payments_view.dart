@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/widgets/custom_header.dart';
 import '../logic/payments_cubit.dart';
 import '../logic/payments_state.dart';
-import 'widgets/payment_card_admin.dart';
+import 'widgets/user_payments_group_card.dart';
 
 class PaymentsView extends StatelessWidget {
   const PaymentsView({super.key});
@@ -46,42 +46,48 @@ class _PaymentsContent extends StatelessWidget {
               BlocBuilder<PaymentsCubit, PaymentsState>(
                 builder: (context, state) {
                   if (state is! PaymentsLoaded) return const SizedBox.shrink();
-                  final underReview = state.allPayments
-                      .where((p) => p.status == 'under_review')
-                      .length;
-                  final approved = state.allPayments
-                      .where((p) => p.status == 'approved')
-                      .length;
+                  
+                  final groups = UserPaymentsGroup.groupPayments(state.allPayments);
+                  final underReview = groups.where((g) => g.status == 'under_review').length;
+                  final approved = groups.where((g) => g.status == 'approved').length;
+                  
                   final total = state.allPayments.fold<double>(
                     0,
-                    (sum, p) =>
-                        p.status == 'approved' ? sum + p.amount : sum,
+                    (sum, p) => p.status == 'approved' ? sum + p.amount : sum,
                   );
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 8),
-                    child: Row(
+                    child: Column(
                       children: [
-                        _SummaryCard(
-                          label: 'قيد المراجعة',
-                          value: '$underReview',
-                          icon: Icons.hourglass_top_rounded,
-                          color: const Color(0xFFFFB03A),
+                        Row(
+                          children: [
+                            _SummaryCard(
+                              label: 'إجمالي المحصّل',
+                              value: 'ر.س ${total.toStringAsFixed(0)}',
+                              icon: Icons.account_balance_wallet_rounded,
+                              color: const Color(0xFF4A4499),
+                              wide: true,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 10),
-                        _SummaryCard(
-                          label: 'مسددة',
-                          value: '$approved',
-                          icon: Icons.check_circle_rounded,
-                          color: const Color(0xFF2ECA7D),
-                        ),
-                        const SizedBox(width: 10),
-                        _SummaryCard(
-                          label: 'إجمالي المحصّل',
-                          value: 'ر.س ${total.toStringAsFixed(0)}',
-                          icon: Icons.account_balance_wallet_rounded,
-                          color: const Color(0xFF4A4499),
-                          wide: true,
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            _SummaryCard(
+                              label: 'قيد المراجعة',
+                              value: '$underReview',
+                              icon: Icons.hourglass_top_rounded,
+                              color: const Color(0xFFFFB03A),
+                            ),
+                            const SizedBox(width: 10),
+                            _SummaryCard(
+                              label: 'مسددة',
+                              value: '$approved',
+                              icon: Icons.check_circle_rounded,
+                              color: const Color(0xFF2ECA7D),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -96,11 +102,11 @@ class _PaymentsContent extends StatelessWidget {
                       ? state.selectedFilter
                       : 'الكل';
                   return SizedBox(
-                    height: 44,
+                    height: 50,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
                       itemCount: _filters.length,
                       itemBuilder: (context, i) {
                         final f = _filters[i];
@@ -111,27 +117,38 @@ class _PaymentsContent extends StatelessWidget {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 8),
+                                horizontal: 24, vertical: 12),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? const Color(0xFF4A4499)
                                   : Colors.white,
-                              borderRadius: BorderRadius.circular(22),
+                              borderRadius: BorderRadius.circular(25),
                               border: Border.all(
                                 color: isSelected
                                     ? const Color(0xFF4A4499)
                                     : const Color(0xFFE0E0E8),
                               ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFF4A4499).withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ]
+                                  : null,
                             ),
-                            child: Text(
-                              f,
-                              style: TextStyle(
-                                fontFamily: 'ReadexPro',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF7070A0),
+                            child: Center(
+                              child: Text(
+                                f,
+                                style: TextStyle(
+                                  fontFamily: 'ReadexPro',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF7070A0),
+                                ),
                               ),
                             ),
                           ),
@@ -161,7 +178,8 @@ class _PaymentsContent extends StatelessWidget {
                       );
                     }
                     if (state is PaymentsLoaded) {
-                      final list = state.payments;
+                      final allGroups = UserPaymentsGroup.groupPayments(state.allPayments);
+                      final list = UserPaymentsGroup.filterGrouped(allGroups, state.selectedFilter);
                       if (list.isEmpty) {
                         return _EmptyPayments(filter: state.selectedFilter);
                       }
@@ -169,7 +187,7 @@ class _PaymentsContent extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: list.length,
                         itemBuilder: (context, index) =>
-                            PaymentCardAdmin(payment: list[index]),
+                            UserPaymentsGroupCard(group: list[index]),
                       );
                     }
                     return const SizedBox.shrink();
@@ -206,30 +224,30 @@ class _SummaryCard extends StatelessWidget {
     return Expanded(
       flex: wide ? 2 : 1,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 16, color: color),
+              child: Icon(icon, size: 20, color: color),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,12 +255,12 @@ class _SummaryCard extends StatelessWidget {
                   Text(label,
                       style: TextStyle(
                           fontFamily: 'ReadexPro',
-                          fontSize: 10,
+                          fontSize: 12,
                           color: Colors.grey.shade500)),
                   Text(value,
                       style: TextStyle(
                           fontFamily: 'ReadexPro',
-                          fontSize: 13,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: color)),
                 ],

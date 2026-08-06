@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../feature/dashboard/presentation/dashboard_view.dart';
 import '../../feature/requests/presentation/requests_view.dart';
 import '../../feature/payments/presentation/payments_view.dart';
+import '../chat/presentation/chats_list_view.dart';
 import 'logic/home_cubit.dart';
 import 'widgets/custom_bottom_nav_bar.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +20,13 @@ class HomePage extends StatelessWidget {
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent({Key? key}) : super(key: key);
+  const _HomeContent();
 
   final List<Widget> _views = const [
     DashboardView(),
     RequestsView(),
     PaymentsView(),
+    ChatsListView(),
     Center(child: Text('الأعدادات (Settings)')),
   ];
 

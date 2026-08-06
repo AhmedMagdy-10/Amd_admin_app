@@ -31,6 +31,7 @@ class RequestModel {
   final bool hasCurrentLoans;
   final String currentLoanInstallment;
   final String remainingMonths;
+  final num outstandingBalance;     // Added for keeping track of outstanding balance
   final Map<String, String> images; // key → URL
   final Map<String, dynamic> raw;   // full raw data (for write-back operations)
 
@@ -57,6 +58,7 @@ class RequestModel {
     required this.hasCurrentLoans,
     required this.currentLoanInstallment,
     required this.remainingMonths,
+    required this.outstandingBalance,
     required this.images,
     required this.raw,
   });
@@ -130,6 +132,7 @@ class RequestModel {
                                 ? field('currentLoanInstallments')
                                 : field('currentLoanInstallment'),
       remainingMonths:        field('remainingMonths'),
+      outstandingBalance:     data['outstandingBalance'] as num? ?? 0,
       images:                 images,
       raw: {
         ...data,
@@ -168,6 +171,7 @@ class RequestModel {
     'hasCurrentLoans':        hasCurrentLoans,
     'currentLoanInstallment': currentLoanInstallment,
     'remainingMonths':        remainingMonths,
+    'outstandingBalance':     outstandingBalance,
     'images':                 images,
     // Preserve all original fields for any UI keys not yet mapped
     ...raw,

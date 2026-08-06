@@ -95,76 +95,98 @@ class ReceiptViewerSheet extends StatelessWidget {
             ),
 
             // ── Action Buttons ─────────────────────────────────────────────────
-            if (payment.status == 'under_review')
-              BlocConsumer<PaymentsCubit, PaymentsState>(
-                listener: (context, state) {
-                  if (state is PaymentsLoaded || state is PaymentsError) {
-                    Navigator.pop(context);
-                  }
-                },
-                builder: (context, state) {
+            if (payment.status == 'under_review' || payment.status == 'pending')
+              StatefulBuilder(
+                builder: (context, setState) {
+                  bool isLoading = false;
+
                   return Container(
                     color: const Color(0xFF1A1A2E),
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    child: Row(
-                      children: [
-                        // Reject
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => context
-                                .read<PaymentsCubit>()
-                                .rejectPayment(payment),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFFFF6B6B),
-                              side: const BorderSide(
-                                  color: Color(0xFFFF6B6B), width: 1.5),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                    child: isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF2ECA7D),
                             ),
-                            icon: const Icon(Icons.close_rounded, size: 18),
-                            label: const Text(
-                              'رفض',
-                              style: TextStyle(
-                                fontFamily: 'ReadexPro',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                          )
+                        : Row(
+                            children: [
+                              // Reject
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () async {
+                                    setState(() => isLoading = true);
+                                    await context
+                                        .read<PaymentsCubit>()
+                                        .rejectPayment(payment);
+                                    if (context.mounted) {
+                                      _showSnackBar(context, 'تم رفض الدفعة بنجاح', false);
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFFF6B6B),
+                                    side: const BorderSide(
+                                        color: Color(0xFFFF6B6B), width: 1.5),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  icon: const Icon(Icons.close_rounded,
+                                      size: 18),
+                                  label: const Text(
+                                    'رفض',
+                                    style: TextStyle(
+                                      fontFamily: 'ReadexPro',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Approve
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton.icon(
-                            onPressed: () => context
-                                .read<PaymentsCubit>()
-                                .approvePayment(payment),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2ECA7D),
-                              foregroundColor: Colors.white,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
-                            ),
-                            icon: const Icon(Icons.check_circle_outline,
-                                size: 18),
-                            label: const Text(
-                              'اعتماد الإيصال',
-                              style: TextStyle(
-                                fontFamily: 'ReadexPro',
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
+                              const SizedBox(width: 12),
+                              // Approve
+                              Expanded(
+                                flex: 2,
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    setState(() => isLoading = true);
+                                    await context
+                                        .read<PaymentsCubit>()
+                                        .approvePayment(payment);
+                                    if (context.mounted) {
+                                      _showSnackBar(context, 'تم اعتماد الدفعة بنجاح', true);
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF2ECA7D),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    elevation: 0,
+                                  ),
+                                  icon: const Icon(Icons.check_circle_outline,
+                                      size: 18),
+                                  label: Text(
+                                    payment.receiptUrl != null
+                                        ? 'اعتماد الإيصال'
+                                        : 'اعتماد الدفعة يدوياً',
+                                    style: const TextStyle(
+                                      fontFamily: 'ReadexPro',
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   );
                 },
               ),
@@ -222,6 +244,39 @@ class ReceiptViewerSheet extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontFamily: 'ReadexPro')),
       ],
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message, bool isSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isSuccess ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontFamily: 'ReadexPro',
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isSuccess ? const Color(0xFF2ECA7D) : const Color(0xFFFF6B6B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+        duration: const Duration(seconds: 3),
+      ),
     );
   }
 }

@@ -1,42 +1,56 @@
 import 'package:amd_admin/core/utils/app_text_styles.dart';
 import 'package:amd_admin/feature/home/widgets/app_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/dashboard_cubit.dart';
 
 class RequestsStatusSection extends StatelessWidget {
   const RequestsStatusSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 24),
-          Text(
-            'حالة الطلبات الحالية',
-            style: AppTextStyles.readexSemiBold20.copyWith(
-              color: Colors.black87,
-            ),
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) {
+        int underReview = 0;
+        int newRequests = 0;
+
+        if (state is DashboardLoaded) {
+          underReview = state.underReviewRequestsCount;
+          newRequests = state.requestsCount;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+              Text(
+                'حالة الطلبات الحالية',
+                style: AppTextStyles.readexSemiBold20.copyWith(
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildStatusCard(
+                title: 'طلبات تحت المراجعة',
+                count: underReview.toString(),
+                percentage: 'اليوم',
+                iconColor: const Color(0xFFFF8A00),
+                svgString: AppIcons.requestsReview,
+              ),
+              const SizedBox(height: 12),
+              _buildStatusCard(
+                title: 'طلبات جديدة',
+                count: newRequests.toString(),
+                percentage: 'اليوم',
+                iconColor: const Color(0xFF2F5CBB),
+                svgString: AppIcons.requestsNew,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          _buildStatusCard(
-            title: 'طلبات تحت المراجعة',
-            count: '60',
-            percentage: '+12% اليوم',
-            iconColor: const Color(0xFFFF8A00),
-            svgString: AppIcons.requestsReview,
-          ),
-          const SizedBox(height: 12),
-          _buildStatusCard(
-            title: 'طلبات جديدة',
-            count: '15',
-            percentage: '+5% اليوم',
-            iconColor: const Color(0xFF2F5CBB),
-            svgString: AppIcons.requestsNew,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

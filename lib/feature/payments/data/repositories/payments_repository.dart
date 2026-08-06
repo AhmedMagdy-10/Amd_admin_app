@@ -38,11 +38,23 @@ class PaymentsRepository {
   }
 
   /// Approve a payment receipt — sets status to `approved`.
-  Future<void> approvePayment(String paymentId) {
-    return _firestore.collection('payments').doc(paymentId).update({
+  Future<void> approvePayment(PaymentModel payment) async {
+    final batch = _firestore.batch();
+    
+    // 1. Update the payment status
+    final paymentRef = _firestore.collection('payments').doc(payment.id);
+    batch.update(paymentRef, {
       'status':     'approved',
       'approvedAt': FieldValue.serverTimestamp(),
     });
+
+    // 2. Deduct from customer's outstanding loan balance
+    final requestRef = _firestore.collection(payment.collection).doc(payment.requestId);
+    batch.update(requestRef, {
+      'outstandingBalance': FieldValue.increment(-payment.amount),
+    });
+
+    await batch.commit();
   }
 
   /// Reject a payment receipt — sets status back to `pending`.
@@ -63,7 +75,16 @@ class PaymentsRepository {
   }) async {
     final batch = _firestore.batch();
     final now = DateTime.now();
+    
+    final totalAmount = monthlyAmount * months;
 
+    // 1. Initialize outstanding balance on the request document
+    final requestRef = _firestore.collection(collection).doc(requestId);
+    batch.update(requestRef, {
+      'outstandingBalance': totalAmount,
+    });
+
+    // 2. Generate monthly payments
     for (int i = 1; i <= months; i++) {
       final dueDate = DateTime(now.year, now.month + i, now.day);
       final ref = _firestore.collection('payments').doc();

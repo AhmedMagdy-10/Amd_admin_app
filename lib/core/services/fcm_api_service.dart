@@ -91,21 +91,18 @@ class FcmApiService {
     required String title,
     required String body,
   }) async {
-    if (userId.isEmpty || userId == 'default_client') {
-      print('FCM API: Invalid user ID. Skipping notification.');
-      return;
-    }
+    final String targetUserId = (userId.isEmpty || userId == 'default_client') ? 'CUSTOMER-001' : userId;
 
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(targetUserId).get();
       if (!userDoc.exists) {
-        print('FCM API: User document $userId not found.');
+        print('FCM API: User document $targetUserId not found.');
         return;
       }
 
       final fcmToken = userDoc.data()?['fcmToken']?.toString();
       if (fcmToken == null || fcmToken.isEmpty) {
-        print('FCM API: User $userId has no fcmToken registered.');
+        print('FCM API: User $targetUserId has no fcmToken registered.');
         return;
       }
 
@@ -115,7 +112,7 @@ class FcmApiService {
         body: body,
       );
     } catch (e) {
-      print('FCM API: Error sending to user $userId: $e');
+      print('FCM API: Error sending to user $targetUserId: $e');
     }
   }
 }

@@ -109,20 +109,11 @@ class FirebaseMessagingService {
       }
       print('FCM Admin Token: $token');
 
-      // Update all documents in admins collection if they exist, or create default
-      final adminsSnap = await FirebaseFirestore.instance.collection('admins').get();
-      if (adminsSnap.docs.isNotEmpty) {
-        for (final doc in adminsSnap.docs) {
-          await doc.reference.update({'fcmToken': token});
-        }
-        print('FCM: Saved token to existing admins.');
-      } else {
-        await FirebaseFirestore.instance.collection('admins').doc('admin_default').set({
-          'fcmToken': token,
-          'name': 'المدير العام',
-        });
-        print('FCM: Created default admin and saved token.');
-      }
+      await FirebaseFirestore.instance.collection('admins').doc('ADMIN-001').set({
+        'fcmToken': token,
+        'tokenUpdatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      print('FCM: Saved token to admin document ADMIN-001.');
     } catch (e) {
       print('FCM: Error registering token: $e');
     }
@@ -135,21 +126,42 @@ class FirebaseMessagingService {
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          return data['userId']?.toString() ?? data['clientId']?.toString();
+          final id = data['userId']?.toString() ?? data['clientId']?.toString();
+          if (id != null && id.isNotEmpty && id != 'default_client') {
+            return id;
+          }
         }
       }
     } catch (e) {
       print('FCM: Error fetching client ID for request $requestId: $e');
     }
-    return null;
+    return 'CUSTOMER-001';
   }
 
-  /// Sends request accepted notification to client
-  Future<void> sendAcceptNotification({required String clientId, required String requestId}) async {
+  /// Sends request accepted notification to client based on the approved step
+  Future<void> sendAcceptNotification({
+    required String clientId,
+    required String requestId,
+    required int currentStep,
+  }) async {
+    String title = '✅ تم قبول طلب التمويل';
+    String body = 'عزيزي العميل، تم قبول طلب التمويل رقم $requestId الخاص بك بنجاح.';
+
+    if (currentStep == 1) {
+      title = '✅ تم قبول دراسة الأهلية';
+      body = 'عزيزي العميل، تمت الموافقة على دراسة الأهلية لطلبك رقم $requestId بنجاح. يرجى استكمال بيانات الطلب.';
+    } else if (currentStep == 2) {
+      title = '✅ تم قبول طلب التمويل';
+      body = 'عزيزي العميل، تم قبول طلب التمويل رقم $requestId الخاص بك وهو الآن بانتظار توقيع العقد.';
+    } else if (currentStep == 3) {
+      title = '💵 تم تحويل مبلغ التمويل';
+      body = 'عزيزي العميل، تم تحويل ودفع مبلغ التمويل لطلبك رقم $requestId بنجاح. يرجى الالتزام بسداد الأقساط.';
+    }
+
     await FcmApiService.sendNotificationToUser(
       userId: clientId,
-      title: '✅ تم قبول طلب التمويل',
-      body: 'عزيزي العميل، تم قبول طلب التمويل رقم $requestId الخاص بك بنجاح وهو الآن بانتظار استكمال الخطوات.',
+      title: title,
+      body: body,
     );
   }
 
@@ -177,6 +189,15 @@ class FirebaseMessagingService {
       userId: clientId,
       title: '❌ تم رفض إيصال السداد',
       body: 'عزيزي العميل، تم رفض إيصال السداد المرفوع للقسط رقم $installmentNum. يرجى مراجعته وإعادة الرفع.',
+    );
+  }
+
+  /// Sends chat message notification to client
+  Future<void> sendChatMessageNotification({required String clientId, required String messagePreview}) async {
+    await FcmApiService.sendNotificationToUser(
+      userId: clientId,
+      title: '💬 رسالة جديدة من الإدارة',
+      body: messagePreview,
     );
   }
 }
