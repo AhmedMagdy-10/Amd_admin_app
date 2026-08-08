@@ -41,77 +41,86 @@ class ClientsCubit extends Cubit<ClientsState> {
 
   Future<void> _buildClientsList() async {
     try {
-      // Step 1: Collect names from all request collections
-      final Map<String, String> nameMap = {};
-
-      final collections = ['FinancingRequests', 'requests', 'orders'];
-      for (final col in collections) {
-        try {
-          final snap = await _firestore.collection(col).get();
-          for (final doc in snap.docs) {
-            final data = doc.data();
-            final userId = data['userId']?.toString() ??
-                data['clientId']?.toString() ??
-                '';
-            if (userId.isEmpty) continue;
-
-            // Try to build name from multiple possible fields
-            final firstName =
-                (data['firstName'] ?? data['first_name'] ?? '').toString().trim();
-            final lastName =
-                (data['lastName'] ?? data['last_name'] ?? '').toString().trim();
-            String name = '';
-            if (firstName.isNotEmpty || lastName.isNotEmpty) {
-              name = '$firstName $lastName'.trim();
-            } else {
-              name = (data['name'] ??
-                      data['fullName'] ??
-                      data['clientName'] ??
-                      '')
-                  .toString()
-                  .trim();
-            }
-            if (name.isNotEmpty && !nameMap.containsKey(userId)) {
-              nameMap[userId] = name;
-            }
-          }
-        } catch (_) {}
-      }
-
-      // Step 2: Also try users collection
-      try {
-        final usersSnap = await _firestore.collection('users').get();
-        for (final doc in usersSnap.docs) {
-          final data = doc.data();
-          final firstName =
-              (data['firstName'] ?? data['first_name'] ?? '').toString().trim();
-          final lastName =
-              (data['lastName'] ?? data['last_name'] ?? '').toString().trim();
-          String name = '';
-          if (firstName.isNotEmpty || lastName.isNotEmpty) {
-            name = '$firstName $lastName'.trim();
-          } else {
-            name = (data['name'] ?? data['fullName'] ?? '').toString().trim();
-          }
-          if (name.isNotEmpty && !nameMap.containsKey(doc.id)) {
-            nameMap[doc.id] = name;
-          }
-        }
-      } catch (_) {}
-
-      // Step 3: Listen to chats collection for live updates
+      // Listen to chats collection for live updates
       _clientsSub =
-          _firestore.collection('chats').snapshots().listen((snapshot) {
+          _firestore.collection('chats').snapshots().listen((snapshot) async {
         if (isClosed) return;
 
         final List<ChatClient> clientsList = [];
 
-        // Add all clients from chats collection
         for (final doc in snapshot.docs) {
           final clientId = doc.id;
-          final name = nameMap[clientId] ?? clientId;
+          String name = clientId; // Default fallback = the ID itself
+
+          // Try to get the real name from users/{clientId}
+          try {
+            final userDoc =
+                await _firestore.collection('users').doc(clientId).get();
+            if (userDoc.exists) {
+              final data = userDoc.data()!;
+              // Try every possible name field combination
+              final firstName = (data['firstName'] ??
+                      data['first_name'] ??
+                      data['fname'] ??
+                      '')
+                  .toString()
+                  .trim();
+              final lastName = (data['lastName'] ??
+                      data['last_name'] ??
+                      data['lname'] ??
+                      '')
+                  .toString()
+                  .trim();
+
+              if (firstName.isNotEmpty || lastName.isNotEmpty) {
+                name = '$firstName $lastName'.trim();
+              } else {
+                final singleName = (data['name'] ??
+                        data['fullName'] ??
+                        data['displayName'] ??
+                        data['username'] ??
+                        '')
+                    .toString()
+                    .trim();
+                if (singleName.isNotEmpty) name = singleName;
+              }
+            }
+          } catch (_) {}
+
+          // If still no name found, try FinancingRequests collection
+          if (name == clientId) {
+            try {
+              final reqSnap = await _firestore
+                  .collection('FinancingRequests')
+                  .where('userId', isEqualTo: clientId)
+                  .limit(1)
+                  .get();
+              if (reqSnap.docs.isNotEmpty) {
+                final data = reqSnap.docs.first.data();
+                final firstName =
+                    (data['firstName'] ?? data['first_name'] ?? '')
+                        .toString()
+                        .trim();
+                final lastName =
+                    (data['lastName'] ?? data['last_name'] ?? '')
+                        .toString()
+                        .trim();
+                if (firstName.isNotEmpty || lastName.isNotEmpty) {
+                  name = '$firstName $lastName'.trim();
+                } else {
+                  final sn = (data['name'] ?? data['fullName'] ?? '')
+                      .toString()
+                      .trim();
+                  if (sn.isNotEmpty) name = sn;
+                }
+              }
+            } catch (_) {}
+          }
+
           clientsList.add(ChatClient(id: clientId, name: name));
         }
+
+        if (isClosed) return;
 
         String currentQuery = '';
         if (state is ClientsLoaded) {
