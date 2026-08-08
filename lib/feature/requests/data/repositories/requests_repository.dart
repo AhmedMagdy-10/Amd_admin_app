@@ -59,6 +59,21 @@ class RequestsRepository {
     _initialized = false;
   }
 
+  /// Forces a manual refresh of the data by restarting the Firestore streams.
+  Future<void> refresh() async {
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
+    _initialized = false;
+    
+    // Restart streams
+    init();
+
+    // Short delay so the UI refresh indicator shows nicely while first snapshots are processed
+    await Future.delayed(const Duration(milliseconds: 1000));
+  }
+
   // ── Private helpers ──────────────────────────────────────────────────────────
 
   void _listenToCollection({

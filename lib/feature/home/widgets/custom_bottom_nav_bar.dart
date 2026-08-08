@@ -6,10 +6,10 @@ class CustomBottomNavBar extends StatelessWidget {
   final ValueChanged<int> onItemSelected;
 
   const CustomBottomNavBar({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onItemSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class CustomBottomNavBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -47,10 +47,17 @@ class CustomBottomNavBar extends StatelessWidget {
             onTap: () => onItemSelected(2),
           ),
           _NavBarItem(
-            svgString: AppIcons.settings,
-            label: 'الأعدادات',
+            svgString: AppIcons.chat,
+            label: 'المحادثة',
             isSelected: selectedIndex == 3,
             onTap: () => onItemSelected(3),
+            hasUnread: true, // Placeholder for badge logic
+          ),
+          _NavBarItem(
+            svgString: AppIcons.settings,
+            label: 'الأعدادات',
+            isSelected: selectedIndex == 4,
+            onTap: () => onItemSelected(4),
           ),
         ],
       ),
@@ -63,12 +70,14 @@ class _NavBarItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool hasUnread;
 
   const _NavBarItem({
     required this.svgString,
     required this.label,
     required this.isSelected,
     required this.onTap,
+    this.hasUnread = false,
   });
 
   @override
@@ -81,10 +90,27 @@ class _NavBarItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CustomNavIcon(
-            svgString: svgString,
-            color: color,
-            size: 26,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CustomNavIcon(
+                svgString: svgString,
+                color: color,
+                size: 26,
+              ),
+              if (hasUnread)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(

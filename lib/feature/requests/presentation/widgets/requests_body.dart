@@ -15,83 +15,94 @@ class RequestsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const CustomHeader(
-            name: 'حاتم سليمان',
-            role: 'صباح الخير،',
-            textColor: Color(0xFF4A4499),
-            subtitleColor: Colors.grey,
-            iconColor: Color(0xFF4A4499),
-            iconBgColor: Colors.white,
-            notificationCount: 1,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: RequestsSummaryChart(),
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: StatusCardsRow(),
-          ),
-          const SizedBox(height: 16),
-          const FilterChipsRow(),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: BlocBuilder<RequestsCubit, RequestsState>(
-              builder: (context, state) {
-                if (state is RequestsLoading) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Center(
-                      child: CircularProgressIndicator(color: Color(0xFF4A4499)),
-                    ),
-                  );
-                }
-
-                if (state is RequestsError) {
-                  return Center(
-                    child: Text(
-                      'حدث خطأ: ${state.message}',
-                      style: const TextStyle(fontFamily: 'ReadexPro', color: Colors.red),
-                    ),
-                  );
-                }
-
-                if (state is RequestsLoaded) {
-                  final requests = state.requests;
-
-                  if (requests.isEmpty) {
-                    return _EmptyState(filter: state.selectedFilter);
+    return RefreshIndicator(
+      color: const Color(0xFF4A4499),
+      backgroundColor: Colors.white,
+      onRefresh: () => context.read<RequestsCubit>().refresh(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            const CustomHeader(
+              name: 'حاتم سليمان',
+              role: 'صباح الخير،',
+              textColor: Color(0xFF4A4499),
+              subtitleColor: Colors.grey,
+              iconColor: Color(0xFF4A4499),
+              iconBgColor: Colors.white,
+              notificationCount: 1,
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: RequestsSummaryChart(),
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: StatusCardsRow(),
+            ),
+            const SizedBox(height: 16),
+            const FilterChipsRow(),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: BlocBuilder<RequestsCubit, RequestsState>(
+                builder: (context, state) {
+                  if (state is RequestsLoading) {
+                    return const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF4A4499),
+                        ),
+                      ),
+                    );
                   }
 
-                  return Column(
-                    children: requests.map((model) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: RequestItemCard(
-                          name:        model.name,
-                          docId:       model.id,
-                          collection:  model.collection,
-                          displayId:   model.requestId,
-                          date:        model.date,
-                          status:      model.status,
-                          currentStep: model.currentStep,
+                  if (state is RequestsError) {
+                    return Center(
+                      child: Text(
+                        'حدث خطأ: ${state.message}',
+                        style: const TextStyle(
+                          fontFamily: 'ReadexPro',
+                          color: Colors.red,
                         ),
-                      );
-                    }).toList(),
-                  );
-                }
+                      ),
+                    );
+                  }
 
-                return const SizedBox.shrink();
-              },
+                  if (state is RequestsLoaded) {
+                    final requests = state.requests;
+
+                    if (requests.isEmpty) {
+                      return _EmptyState(filter: state.selectedFilter);
+                    }
+
+                    return Column(
+                      children: requests.map((model) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: RequestItemCard(
+                            name: model.name,
+                            docId: model.id,
+                            collection: model.collection,
+                            displayId: model.requestId,
+                            date: model.date,
+                            status: model.status,
+                            currentStep: model.currentStep,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
-        ],
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

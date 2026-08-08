@@ -57,6 +57,11 @@ class RequestsCubit extends Cubit<RequestsState> {
 
   // ── Actions ───────────────────────────────────────────────────────────────────
 
+  /// Refreshes the data manually from the repository
+  Future<void> refresh() async {
+    await _repository.refresh();
+  }
+
   /// Accepts a request: advances its step and sets step-appropriate status.
   /// When step 3 is approved, auto-generates monthly payment documents.
   Future<void> acceptRequest(RequestModel model) async {

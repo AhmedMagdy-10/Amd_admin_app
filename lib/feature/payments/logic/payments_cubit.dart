@@ -38,9 +38,13 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     }
   }
 
+  Future<void> refresh() async {
+    await _repository.refresh();
+  }
+
   Future<void> approvePayment(PaymentModel payment) async {
     try {
-      await _repository.approvePayment(payment.id);
+      await _repository.approvePayment(payment);
 
       // Trigger FCM notification asynchronously to not block UI
       unawaited(() async {
@@ -66,7 +70,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
   Future<void> rejectPayment(PaymentModel payment) async {
     try {
-      await _repository.rejectPayment(payment.id);
+      await _repository.rejectPayment(payment);
 
       // Trigger FCM notification asynchronously to not block UI
       unawaited(() async {
