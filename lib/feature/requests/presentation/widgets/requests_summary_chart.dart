@@ -1,160 +1,192 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../logic/requests_cubit.dart';
+import '../../logic/requests_state.dart';
 
 class RequestsSummaryChart extends StatelessWidget {
   const RequestsSummaryChart({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Left Side (Totals and Legend)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'إجمالي الطلبات',
-                  style: AppTextStyles.readexMedium14.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '2,099',
-                  style: AppTextStyles.readexMedium32.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2A2375), // Dark Blue
-                    fontSize: 36, // Exceptionally large as in design
-                  ),
-                ),
-                Text(
-                  'طلب',
-                  style: AppTextStyles.readexMedium14.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Legend Items
-                _buildLegendItem(
-                  title: 'تقديم طلب',
-                  count: '930',
-                  color: const Color(0xFF2A2375), // Dark Blue
-                ),
-                const SizedBox(height: 12),
-                _buildLegendItem(
-                  title: 'جاري المراجعة',
-                  count: '319',
-                  color: const Color(0xFF9EA3C1), // Greyish Blue
-                ),
-                const SizedBox(height: 12),
-                _buildLegendItem(
-                  title: 'انتظار تسليم المبلغ',
-                  count: '850',
-                  color: const Color(0xFF7A6DFF), // Light Purple
-                ),
-                const SizedBox(height: 12),
-                _buildLegendItem(
-                  title: 'مكتملة',
-                  count: '0',
-                  color: const Color(0xFF2ECA7D), // Green
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 24), // Gap between text and chart
-          // Right Side (Donut Chart)
-          SizedBox(
-            width: 130,
-            height: 130,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CustomPaint(
-                  painter: DonutChartPainter(
-                    segments: [
-                      DonutSegment(value: 930, color: const Color(0xFF2A2375)), // تقديم طلب
-                      DonutSegment(value: 850, color: const Color(0xFF7A6DFF)), // انتظار تسليم المبلغ
-                      DonutSegment(value: 319, color: const Color(0xFF9EA3C1)), // جاري المراجعة
-                      DonutSegment(value: 0, color: const Color(0xFF2ECA7D)),   // مكتملة
-                    ],
-                    strokeWidth: 16, // Thinner stroke to match design better
-                  ),
-                ),
-                // Center Text
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '2,099',
-                        style: AppTextStyles.readexSemiBold20.copyWith(
-                          color: const Color(0xFF2A2375),
-                        ),
-                      ),
-                      Text(
-                        'طلبات',
-                        style: AppTextStyles.readexRegular12.copyWith(
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    return BlocBuilder<RequestsCubit, RequestsState>(
+      builder: (context, state) {
+        int total = 0;
+        int inReview = 0;
+        int submission = 0;
+        int waiting = 0;
+        int completed = 0;
 
-  Widget _buildLegendItem({
-    required String title,
-    required String count,
-    required Color color,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: AppTextStyles.readexMedium12.copyWith(
-                color: Colors.black87,
+        if (state is RequestsLoaded) {
+          total = state.countTotal;
+          inReview = state.countInReview;
+          submission = state.countSubmission;
+          waiting = state.countWaitingTransfer;
+          completed = state.countCompleted;
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
-          ],
-        ),
-        Text(
-          count,
-          style: AppTextStyles.readexMedium12.copyWith(color: Colors.black87),
-        ),
-      ],
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left Side (Totals and Legend)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'إجمالي الطلبات',
+                      style: AppTextStyles.readexMedium14.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$total',
+                      style: AppTextStyles.readexMedium32.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF2A2375), // Dark Blue
+                        fontSize: 36, // Exceptionally large as in design
+                      ),
+                    ),
+                    Text(
+                      'طلب',
+                      style: AppTextStyles.readexMedium14.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Legend Items
+                    _buildLegendItem(
+                      title: 'تقديم طلب',
+                      count: '$submission',
+                      color: const Color(0xFF2A2375), // Dark Blue
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLegendItem(
+                      title: 'جاري المراجعة',
+                      count: '$inReview',
+                      color: const Color(0xFF9EA3C1), // Greyish Blue
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLegendItem(
+                      title: 'انتظار تسليم المبلغ',
+                      count: '$waiting',
+                      color: const Color(0xFF7A6DFF), // Light Purple
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLegendItem(
+                      title: 'مكتملة',
+                      count: '$completed',
+                      color: const Color(0xFF2ECA7D), // Green
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 24), // Gap between text and chart
+              // Right Side (Donut Chart)
+              SizedBox(
+                width: 130,
+                height: 130,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CustomPaint(
+                      painter: DonutChartPainter(
+                        segments: [
+                          DonutSegment(
+                            value: submission.toDouble(),
+                            color: const Color(0xFF2A2375),
+                          ), // تقديم طلب
+                          DonutSegment(
+                            value: waiting.toDouble(),
+                            color: const Color(0xFF7A6DFF),
+                          ), // انتظار تسليم المبلغ
+                          DonutSegment(
+                            value: inReview.toDouble(),
+                            color: const Color(0xFF9EA3C1),
+                          ), // جاري المراجعة
+                          DonutSegment(
+                            value: completed.toDouble(),
+                            color: const Color(0xFF2ECA7D),
+                          ), // مكتملة
+                        ],
+                        strokeWidth:
+                            16, // Thinner stroke to match design better
+                      ),
+                    ),
+                    // Center Text
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '$total',
+                            style: AppTextStyles.readexSemiBold20.copyWith(
+                              color: const Color(0xFF2A2375),
+                            ),
+                          ),
+                          Text(
+                            'طلبات',
+                            style: AppTextStyles.readexRegular12.copyWith(
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
+}
+
+Widget _buildLegendItem({
+  required String title,
+  required String count,
+  required Color color,
+}) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: AppTextStyles.readexMedium12.copyWith(color: Colors.black87),
+          ),
+        ],
+      ),
+      Text(
+        count,
+        style: AppTextStyles.readexMedium12.copyWith(color: Colors.black87),
+      ),
+    ],
+  );
 }
 
 class DonutSegment {
@@ -183,9 +215,9 @@ class DonutChartPainter extends CustomPainter {
 
     for (var segment in segments) {
       if (segment.value <= 0) continue;
-      
+
       final sweepAngle = (segment.value / total) * 2 * math.pi;
-      
+
       final paint = Paint()
         ..color = segment.color
         ..style = PaintingStyle.stroke
@@ -193,7 +225,7 @@ class DonutChartPainter extends CustomPainter {
         ..strokeCap = StrokeCap.butt;
 
       canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
-      
+
       startAngle += sweepAngle;
     }
   }

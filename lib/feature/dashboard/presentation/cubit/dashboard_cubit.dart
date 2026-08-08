@@ -42,6 +42,11 @@ class DashboardCubit extends Cubit<DashboardState> {
     });
   }
 
+  Future<void> refresh() async {
+    await _requestsRepo.refresh();
+    await _paymentsRepo.refresh();
+  }
+
   void _recalculateStats() {
     if (isClosed) return;
 

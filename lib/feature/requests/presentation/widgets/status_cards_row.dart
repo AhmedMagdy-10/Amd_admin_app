@@ -1,54 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../logic/requests_cubit.dart';
+import '../../logic/requests_state.dart';
 
 class StatusCardsRow extends StatelessWidget {
   const StatusCardsRow({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatusCard(
-            icon: Icons.access_time,
-            iconColor: const Color(0xFF7A6DFF),
-            iconBgColor: const Color(0xFFF4F5F7),
-            title: 'جاري المراجعة',
-            count: '319',
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildStatusCard(
-            icon: Icons.receipt_long,
-            iconColor: const Color(0xFF7A6DFF),
-            iconBgColor: const Color(0xFFEBEAF4),
-            title: 'تقديم طلب',
-            count: '930',
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildStatusCard(
-            icon: Icons.hourglass_empty,
-            iconColor: const Color(0xFF7A6DFF),
-            iconBgColor: const Color(0xFFF0EFFF),
-            title: 'انتظار تسليم المبلغ',
-            count: '850',
-          ),
-        ),
-        const SizedBox(width: 8),
+    return BlocBuilder<RequestsCubit, RequestsState>(
+      builder: (context, state) {
+        int inReview = 0;
+        int submission = 0;
+        int waiting = 0;
+        int completed = 0;
 
-        Expanded(
-          child: _buildStatusCard(
-            icon: Icons.check_circle_outline,
-            iconColor: const Color(0xFF2ECA7D),
-            iconBgColor: const Color(0xFFE8FAF0),
-            title: 'مكتملة',
-            count: '0',
-          ),
-        ),
-      ],
+        if (state is RequestsLoaded) {
+          inReview = state.countInReview;
+          submission = state.countSubmission;
+          waiting = state.countWaitingTransfer;
+          completed = state.countCompleted;
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatusCard(
+                icon: Icons.access_time,
+                iconColor: const Color(0xFF7A6DFF),
+                iconBgColor: const Color(0xFFF4F5F7),
+                title: 'جاري المراجعة',
+                count: '$inReview',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildStatusCard(
+                icon: Icons.receipt_long,
+                iconColor: const Color(0xFF7A6DFF),
+                iconBgColor: const Color(0xFFEBEAF4),
+                title: 'تقديم طلب',
+                count: '$submission',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildStatusCard(
+                icon: Icons.hourglass_empty,
+                iconColor: const Color(0xFF7A6DFF),
+                iconBgColor: const Color(0xFFF0EFFF),
+                title: 'انتظار تسليم المبلغ',
+                count: '$waiting',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildStatusCard(
+                icon: Icons.check_circle_outline,
+                iconColor: const Color(0xFF2ECA7D),
+                iconBgColor: const Color(0xFFE8FAF0),
+                title: 'مكتملة',
+                count: '$completed',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

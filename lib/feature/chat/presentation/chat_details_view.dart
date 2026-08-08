@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import '../logic/chat_cubit.dart';
 import '../data/chat_message.dart';
 import 'widgets/full_screen_image_viewer.dart';

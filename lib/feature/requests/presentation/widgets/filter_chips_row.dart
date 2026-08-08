@@ -14,7 +14,7 @@ class FilterChipsRow extends StatelessWidget {
       'جاري المراجعه',
       'تقديم الطلب',
       'انتظار تسليم المبلغ',
-      'متكملة',
+      'مكتملة',
     ];
 
     return Directionality(

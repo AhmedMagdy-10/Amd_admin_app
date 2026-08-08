@@ -1,5 +1,9 @@
 import 'package:amd_admin/core/utils/app_text_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../feature/notifications/logic/notifications_cubit.dart';
+import '../../feature/notifications/logic/notifications_state.dart';
+import '../../feature/notifications/presentation/notifications_view.dart';
 
 class CustomHeader extends StatelessWidget {
   final String name;
@@ -9,6 +13,7 @@ class CustomHeader extends StatelessWidget {
   final Color iconColor;
   final Color iconBgColor;
   final int notificationCount;
+  final VoidCallback? onBackButtonPressed;
 
   const CustomHeader({
     Key? key,
@@ -19,6 +24,7 @@ class CustomHeader extends StatelessWidget {
     required this.iconColor,
     required this.iconBgColor,
     this.notificationCount = 0,
+    this.onBackButtonPressed,
   }) : super(key: key);
 
   @override
@@ -67,42 +73,63 @@ class CustomHeader extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           // Notification Icon (Second child -> goes to the Left in RTL)
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.notifications_outlined,
-                  color: iconColor,
-                  size: 24,
-                ),
-              ),
-              if (notificationCount > 0)
-                Positioned(
-                  top: -4,
-                  right: -4, // Right in standard layout, will be adjusted for RTL visually or kept here
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF4A4499), // Or any highlight color, usually Red or Primary. The design has dark blue
-                      shape: BoxShape.circle,
+          BlocBuilder<NotificationsCubit, NotificationsState>(
+            builder: (context, state) {
+              int unread = notificationCount; // fallback
+              if (state is NotificationsLoaded) {
+                unread = state.unreadCount;
+              }
+
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsView(),
                     ),
-                    child: Text(
-                      notificationCount > 9 ? '+9' : notificationCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: iconBgColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        color: iconColor,
+                        size: 24,
                       ),
                     ),
-                  ),
+                    if (unread > 0)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF4A4499),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            unread > 99 ? '99+' : unread.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
+              );
+            },
           ),
         ],
       ),

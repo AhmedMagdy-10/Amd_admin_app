@@ -5,13 +5,16 @@ import 'package:http/http.dart' as http;
 import 'fcm_credentials.dart';
 
 class FcmApiService {
-  static const String _messagingScope = 'https://www.googleapis.com/auth/firebase.messaging';
+  static const String _messagingScope =
+      'https://www.googleapis.com/auth/firebase.messaging';
 
   /// Obtains OAuth2 access token using service account credentials.
   static Future<String> getAccessToken() async {
-    final Map<String, dynamic> serviceAccountMap = jsonDecode(FcmCredentials.serviceAccountJson);
-    final accountCredentials = ServiceAccountCredentials.fromJson(serviceAccountMap);
-    
+    final Map<String, dynamic> serviceAccountMap =
+        jsonDecode(FcmCredentials.serviceAccountJson);
+    final accountCredentials =
+        ServiceAccountCredentials.fromJson(serviceAccountMap);
+
     final client = http.Client();
     try {
       final accessCredentials = await obtainAccessCredentialsViaServiceAccount(
@@ -25,7 +28,7 @@ class FcmApiService {
     }
   }
 
-  /// Sends a push notification to a specific FCM token.
+  /// Sends a push notification directly to a specific FCM token.
   static Future<void> sendNotification({
     required String token,
     required String title,
@@ -38,9 +41,12 @@ class FcmApiService {
 
     try {
       final tokenValue = await getAccessToken();
-      final projectId = jsonDecode(FcmCredentials.serviceAccountJson)['project_id'] ?? 'amd-app-bbd5c';
-      
-      final url = Uri.parse('https://fcm.googleapis.com/v1/projects/$projectId/messages:send');
+      final projectId =
+          jsonDecode(FcmCredentials.serviceAccountJson)['project_id'] ??
+              'amd-app-bbd5c';
+
+      final url = Uri.parse(
+          'https://fcm.googleapis.com/v1/projects/$projectId/messages:send');
       final response = await http.post(
         url,
         headers: {
@@ -74,45 +80,79 @@ class FcmApiService {
           }
         }),
       );
-      
+
       if (response.statusCode == 200) {
-        print('FCM API: Notification sent successfully.');
+        print('FCM API: ✅ Notification sent successfully.');
       } else {
-        print('FCM API: Failed to send. Code: ${response.statusCode}, Body: ${response.body}');
+        print(
+            'FCM API: ❌ Failed. Code: ${response.statusCode}, Body: ${response.body}');
       }
     } catch (e) {
       print('FCM API: Error sending notification: $e');
     }
   }
 
-  /// Looks up user's FCM token from the users collection and sends them a notification.
+  /// Sends a notification to a user by looking up their FCM token in
+  /// Firestore → users/{userId}/fcmToken
+  ///
+  /// NOTE: Since Auth is not implemented yet, userId is hardcoded as CUSTOMER-001.
+  /// The client app MUST save its FCM token to:
+  ///   users/CUSTOMER-001 → { fcmToken: "..." }
   static Future<void> sendNotificationToUser({
     required String userId,
     required String title,
     required String body,
   }) async {
-    final String targetUserId = (userId.isEmpty || userId == 'default_client') ? 'CUSTOMER-001' : userId;
+    // Hardcode fallback to CUSTOMER-001 while Auth is not implemented
+    final String targetId =
+        (userId.isEmpty || userId == 'default_client') ? 'CUSTOMER-001' : userId;
+
+    print('FCM API: Looking for FCM token → users/$targetId/fcmToken');
 
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(targetUserId).get();
-      if (!userDoc.exists) {
-        print('FCM API: User document $targetUserId not found.');
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(targetId)
+          .get();
+
+      if (!doc.exists || doc.data() == null) {
+        print('FCM API: ❌ Document users/$targetId not found in Firestore.');
         return;
       }
 
-      final fcmToken = userDoc.data()?['fcmToken']?.toString();
+      final data = doc.data()!;
+      print('FCM API: Document fields found: ${data.keys.toList()}');
+
+      final fcmToken = data['fcmToken']?.toString();
+
       if (fcmToken == null || fcmToken.isEmpty) {
-        print('FCM API: User $targetUserId has no fcmToken registered.');
+        print(
+            'FCM API: ❌ fcmToken is empty for users/$targetId. '
+            'The client app must save its token under the field name "fcmToken".');
         return;
       }
 
-      await sendNotification(
-        token: fcmToken,
-        title: title,
-        body: body,
-      );
+      print('FCM API: ✅ Token found. Sending "$title" to $targetId...');
+      await sendNotification(token: fcmToken, title: title, body: body);
+
+      // Save notification to Firestore for in-app display
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(targetId)
+            .collection('notifications')
+            .add({
+          'title': title,
+          'body': body,
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+        });
+        print('FCM API: ✅ Saved in-app notification to users/$targetId/notifications/');
+      } catch (e) {
+        print('FCM API: Error saving in-app notification to Firestore: $e');
+      }
     } catch (e) {
-      print('FCM API: Error sending to user $targetUserId: $e');
+      print('FCM API: Error sending to $targetId: $e');
     }
   }
 }

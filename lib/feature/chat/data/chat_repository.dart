@@ -7,18 +7,21 @@ import 'chat_client.dart';
 
 class ChatRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
-  // TODO: Replace with your actual Imgbb API key
+
+  // Replace with your actual Imgbb API key
   final String _imgbbApiKey = 'YOUR_IMGBB_API_KEY_HERE';
 
-  /// Fetch all users as ChatClients
+  /// Fetch all users from Firestore users collection as ChatClients
   Stream<List<ChatClient>> getClientsStream() {
     return _firestore.collection('users').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => ChatClient.fromMap(doc.id, doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => ChatClient.fromMap(doc.id, doc.data()))
+          .toList();
     });
   }
 
-  /// Listen to messages for a specific client
+  /// Listen to messages for a specific client.
+  /// Path: chats/{clientId}/messages  ordered by timestamp ascending
   Stream<List<ChatMessage>> getMessagesStream(String clientId) {
     return _firestore
         .collection('chats')
@@ -27,29 +30,36 @@ class ChatRepository {
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => ChatMessage.fromMap(doc.id, doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => ChatMessage.fromMap(doc.id, doc.data()))
+          .toList();
     });
   }
 
-  /// Send a text or image message
+  /// Send a message to a client.
+  /// Writes to: chats/{clientId}/messages
+  /// Structure (exact):
+  /// {
+  ///   "text": "...",
+  ///   "imageUrl": null,
+  ///   "senderId": "ADMIN-001",
+  ///   "timestamp": FieldValue.serverTimestamp()
+  /// }
   Future<void> sendMessage({
     required String clientId,
     required String text,
     String? imageUrl,
   }) async {
-    final message = ChatMessage(
-      id: '',
-      text: text,
-      imageUrl: imageUrl,
-      senderId: 'ADMIN-001', // Hardcoded Admin ID as requested
-      timestamp: DateTime.now(),
-    );
-
     await _firestore
         .collection('chats')
         .doc(clientId)
         .collection('messages')
-        .add(message.toMap());
+        .add({
+      'text': text,
+      'imageUrl': imageUrl, // null when not an image
+      'senderId': 'ADMIN-001', // Hardcoded until Auth is implemented
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Upload image to Imgbb and return the URL

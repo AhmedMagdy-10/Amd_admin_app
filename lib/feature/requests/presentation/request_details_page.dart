@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/models/request_model.dart';
 import '../logic/requests_cubit.dart';
@@ -93,9 +92,20 @@ class RequestDetailsPage extends StatelessWidget {
 
               if (model == null) {
                 return Center(
-                  child: Text(
-                    'لم يتم العثور على بيانات الطلب',
-                    style: AppTextStyles.readexMedium14.copyWith(color: Colors.grey),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Lottie.asset(
+                        'assets/lottie/No Item Found.json',
+                        height: 180,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'لم يتم العثور على بيانات الطلب',
+                        style: AppTextStyles.readexMedium14.copyWith(color: Colors.grey),
+                      ),
+                    ],
                   ),
                 );
               }
@@ -116,20 +126,8 @@ class RequestDetailsPage extends StatelessWidget {
                           RequestDetailsStepper(model: model),
                           const SizedBox(height: 24),
                           _buildClientCard(view),
-                          const SizedBox(height: 16),
-                          _buildPersonalDataTile(context, view),
-                          const SizedBox(height: 16),
-                          _buildFinancingInfoTile(context, view),
-                          const SizedBox(height: 16),
-                          _buildFinancialDataTile(context, view),
-                          const SizedBox(height: 16),
-                          _buildEmploymentInfoTile(context, view),
-                          const SizedBox(height: 16),
-                          _buildCurrentObligationsTile(context, view),
-                          const SizedBox(height: 16),
-                          _buildOtherDataTile(context, view),
-                          const SizedBox(height: 16),
-                          _buildAttachmentsTile(context, view),
+                          const SizedBox(height: 20),
+                          _buildStepGuideCard(model),
                           const SizedBox(height: 32),
                         ],
                       ),
@@ -147,7 +145,208 @@ class RequestDetailsPage extends StatelessWidget {
     );
   }
 
-  // _buildStepper and helper methods have been moved to RequestDetailsStepper below
+  // ── Step Guide Card ──────────────────────────────────────────────────────────
+
+  static const _guideStepTitles = [
+    'جاري المراجعة',
+    'تقديم الطلب',
+    'انتظار تسليم المبلغ',
+    'مكتملة',
+  ];
+  static const _guideStepIcons = [
+    Icons.search_rounded,
+    Icons.receipt_long_rounded,
+    Icons.account_balance_wallet_rounded,
+    Icons.check_circle_rounded,
+  ];
+  static const _guideStepColors = [
+    Color(0xFF7C6DFA),
+    Color(0xFF3F51B5),
+    Color(0xFF00838F),
+    Color(0xFF2ECA7D),
+  ];
+
+  Widget _buildStepGuideCard(RequestModel model) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header hint
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2A2375), Color(0xFF4A4499)],
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.touch_app_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'اضغط على أي خطوة لعرض تفاصيلها',
+                  style: TextStyle(
+                    fontFamily: 'ReadexPro',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Step cards grid — 2 per row
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 4,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.3,
+          ),
+          itemBuilder: (context, i) {
+            final stepNumber = i + 1;
+            final isActive = model.currentStep >= stepNumber;
+            final isApproved = _isStepApproved(model, stepNumber);
+            final color = _guideStepColors[i];
+
+            return GestureDetector(
+              onTap: () => _openStepSheetFromPage(context, model, i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: isActive ? color.withValues(alpha: 0.08) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isActive ? color.withValues(alpha: 0.35) : Colors.grey.shade200,
+                    width: isActive ? 1.5 : 1,
+                  ),
+                  boxShadow: [
+                    if (isActive)
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: isActive ? color : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            _guideStepIcons[i],
+                            color: isActive ? Colors.white : Colors.grey.shade400,
+                            size: 18,
+                          ),
+                        ),
+                        const Spacer(),
+                        _StepStatusBadge(
+                          isApproved: isApproved,
+                          isActive: isActive,
+                          color: color,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'الخطوة $stepNumber',
+                      style: TextStyle(
+                        fontFamily: 'ReadexPro',
+                        fontSize: 12,
+                        color: isActive ? color : Colors.grey.shade400,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        _guideStepTitles[i],
+                        style: TextStyle(
+                          fontFamily: 'ReadexPro',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: isActive ? Colors.black87 : Colors.grey.shade500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  static bool _isStepApproved(RequestModel model, int stepNumber) {
+    final status = model.status;
+    final cs = model.currentStep;
+    if (stepNumber < cs) return true;
+    switch (stepNumber) {
+      case 1:
+        return status == 'eligibility_approved' ||
+            status == 'request_pending' ||
+            status == 'request_pendding' ||
+            status == 'request_approved' ||
+            status == 'transfer_pending' ||
+            status == 'transfer_approved' ||
+            status == 'approved';
+      case 2:
+        return status == 'request_approved' ||
+            status == 'transfer_pending' ||
+            status == 'transfer_approved' ||
+            status == 'approved';
+      case 3:
+        return status == 'transfer_approved' || status == 'approved';
+      case 4:
+        return status == 'transfer_approved' || status == 'approved' || status == 'مكتملة';
+      default:
+        return status == 'transfer_approved' || status == 'approved';
+    }
+  }
+
+  void _openStepSheetFromPage(BuildContext context, RequestModel model, int index) {
+    final stepNumber = index + 1;
+    final isCompleted = model.currentStep >= stepNumber;
+    final isApproved = _isStepApproved(model, stepNumber);
+    final cubit = context.read<RequestsCubit>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _StepDetailSheet(
+        stepNumber: stepNumber,
+        model: model,
+        isCompleted: isCompleted,
+        isApproved: isApproved,
+        cubit: cubit,
+        parentContext: context,
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildClientCard(Map<String, dynamic> data) {
     Color statusBgColor = const Color(0xFFFFF4E5);
@@ -280,820 +479,6 @@ class RequestDetailsPage extends StatelessWidget {
     );
   }
 
-  // Financing Information ExpansionTile
-  Widget _buildFinancingInfoTile(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(Icons.receipt_long, color: Colors.black87, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'معلومات التمويل',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      context: context,
-                      label: 'مبلغ المطلوب',
-                      value: data['amount'] ?? '',
-                      valueColor: const Color(0xFF2A2375),
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      context: context,
-                      label: 'مدة القرض',
-                      value: data['duration'] ?? '',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Financial Data ExpansionTile
-  Widget _buildFinancialDataTile(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(
-                Icons.account_balance_wallet,
-                color: Colors.black87,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'البيانات المالية',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'الدخل الشهري',
-                          value: data['monthlyIncome'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'مصدر الدخل',
-                          value: data['incomeSource'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'الالتزامات البنكية',
-                          value: data['bankObligations'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'رقم حساب بنكي',
-                          value: data['iban'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Employment Information ExpansionTile
-  Widget _buildEmploymentInfoTile(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(Icons.work, color: Colors.black87, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'معلومات التوظيف',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'نوع الوظيفة',
-                          value: data['jobType'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'المرتب الصافي',
-                          value: data['netSalary'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'تاريخ اخر راتب اخذته',
-                          value: data['lastSalaryDate'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'تاريخ الانضمام الي جهة العمل الحالية',
-                          value: data['joiningDate'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Current Obligations ExpansionTile
-  Widget _buildCurrentObligationsTile(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(Icons.assignment, color: Colors.black87, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'الالتزامات الحالية',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'الالتزامات البنكية',
-                          value: data['hasBankObligations'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'قيمة قسط القرض الحالي',
-                          value: data['currentLoanInstallment'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'الاشهر المتبقية',
-                          value: data['remainingMonths'] ?? '',
-                        ),
-                      ),
-                      const Expanded(child: SizedBox.shrink()),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Other Data ExpansionTile
-  Widget _buildOtherDataTile(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.black87, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'بيانات اخرى',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'العنوان الوظيفي',
-                          value: data['jobTitle'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'السلعة',
-                          value: data['commodity'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'إيقاف الخدمات',
-                          value: data['serviceStop'] ?? '',
-                        ),
-                      ),
-                      const Expanded(child: SizedBox.shrink()),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-
-  // Attachments & Documents ExpansionTile
-  Widget _buildAttachmentsTile(BuildContext context, Map<String, dynamic> data) {
-    // Support both legacy `attachments` list and new `images` map from FinancingRequests
-    // Firestore may return nested maps as Map<dynamic,dynamic> so cast carefully
-    Map<String, dynamic> images = {};
-    final rawImages = data['images'];
-    if (rawImages is Map) {
-      images = rawImages.map((k, v) => MapEntry(k.toString(), v));
-    }
-
-    final attachmentsList = data['attachments'] as List<dynamic>? ?? [];
-
-    // Build a unified list from images map
-    final imageLabels = <String, String>{
-      'idFront':       'صورة بطاقة الهوية (أمامية)',
-      'idBack':        'صورة بطاقة الهوية (خلفية)',
-      'bankAccount':   'كشف الحساب البنكي',
-      'proofOfIncome': 'إثبات الدخل / مفردات المرتب',
-      'salarySlip':    'قسيمة الراتب',
-    };
-    final imageItems = images.entries
-        .where((e) => e.value != null && e.value.toString().isNotEmpty)
-        .map((e) => MapEntry(imageLabels[e.key] ?? e.key, e.value.toString()))
-        .toList();
-
-    final hasContent = imageItems.isNotEmpty || attachmentsList.isNotEmpty;
-
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(Icons.folder, color: Colors.black87, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'المرفقات والمستندات',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (hasContent)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4A4499),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${imageItems.length + attachmentsList.length}',
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'ReadexPro'),
-                  ),
-                ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  if (!hasContent)
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        'لا توجد مرفقات مرفوعة',
-                        style: AppTextStyles.readexRegular12.copyWith(color: Colors.grey),
-                      ),
-                    ),
-                  // Image URL attachments from FinancingRequests
-                  ...imageItems.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: _buildImageAttachmentItem(context: context, title: e.key, url: e.value),
-                  )),
-                  // Legacy list-style attachments
-                  ...attachmentsList.map((item) {
-                    final att = item as Map<dynamic, dynamic>;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: _buildAttachmentItem(
-                        title: att['title'] ?? '',
-                        meta:  att['meta']  ?? '',
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentItem({required String title, required String meta}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8FAF0),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.insert_drive_file_outlined,
-                  color: Color(0xFF2ECA7D),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.readexMedium14.copyWith(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    meta,
-                    style: AppTextStyles.readexRegular12.copyWith(
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4A4499),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            ),
-            child: Text(
-              'فتح',
-              style: AppTextStyles.readexMedium12.copyWith(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Renders an image URL attachment (from the `images` map in FinancingRequests)
-  Widget _buildImageAttachmentItem({
-    required BuildContext context,
-    required String title,
-    required String url,
-  }) {
-    void openFullscreen() {
-      Navigator.of(context).push(
-        PageRouteBuilder(
-          opaque: false,
-          barrierColor: Colors.black,
-          pageBuilder: (_, __, ___) => _FullscreenImagePage(url: url, title: title),
-          transitionsBuilder: (_, animation, __, child) =>
-              FadeTransition(opacity: animation, child: child),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: openFullscreen,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Hero(
-                    tag: url,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        url,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 48,
-                          height: 48,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFE8FAF0),
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
-                          ),
-                          child: const Icon(Icons.image_outlined, color: Color(0xFF2ECA7D), size: 22),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.readexMedium14.copyWith(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              onPressed: openFullscreen,
-              icon: const Icon(Icons.open_in_full, size: 14),
-              label: Text('فتح', style: AppTextStyles.readexMedium12.copyWith(color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4A4499),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  // Personal Data ExpansionTile Implementation
-  Widget _buildPersonalDataTile(BuildContext context, Map<String, dynamic> data) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFFf5f0fa),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          iconColor: Colors.black87,
-          collapsedIconColor: Colors.black87,
-          title: Row(
-            children: [
-              const Icon(Icons.person, color: Colors.black87, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'البيانات الشخصية',
-                style: AppTextStyles.readexSemiBold14.copyWith(
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          children: [
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'اسم العميل',
-                          value: data['name'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'البريد الالكتروني',
-                          value: data['email'] ?? '',
-                          canCopy: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'رقم الهاتف',
-                          value: data['phone'] ?? '',
-                          canCopy: true,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'رقم الهوية',
-                          value: data['identityNumber'] ?? data['nationalId'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'الجنسية',
-                          value: data['nationality'] ?? '',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'تاريخ الميلاد',
-                          value: data['birthdate'] ?? '',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoItem(
-                          context: context,
-                          label: 'عدد المعالين',
-                          value: data['dependents'] ?? '',
-                        ),
-                      ),
-                      const Expanded(child: SizedBox.shrink()),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoItem({
-    required BuildContext context,
-    required String label,
-    required String value,
-    bool canCopy = false,
-    Color? valueColor,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.readexRegular12.copyWith(
-            color: Colors.grey.shade500,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            if (canCopy) ...[
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: value));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'تم نسخ: $value',
-                              style: const TextStyle(
-                                fontFamily: 'ReadexPro',
-                                fontSize: 13,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: const Color(0xFF2A2375),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  child: Icon(Icons.copy, size: 14, color: Colors.black54),
-                ),
-              ),
-              const SizedBox(width: 2),
-            ],
-            Expanded(
-              child: Text(
-                value,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.readexMedium14.copyWith(
-                  color: valueColor ?? Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
   Future<bool?> _showCreativeConfirmDialog({
     required BuildContext context,
@@ -1142,36 +527,48 @@ class RequestDetailsPage extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        'إلغاء',
-                        style: AppTextStyles.readexMedium14.copyWith(color: Colors.grey.shade700),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'إلغاء',
+                            style: AppTextStyles.readexMedium14.copyWith(color: Colors.grey.shade700),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        confirmText,
-                        style: AppTextStyles.readexMedium14.copyWith(color: Colors.white),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            confirmText,
+                            style: AppTextStyles.readexMedium14.copyWith(color: Colors.white),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1234,14 +631,48 @@ class RequestDetailsPage extends StatelessWidget {
     });
   }
 
+  /// Returns the accept button label for the current step
+  static String _acceptButtonLabel(int currentStep) {
+    switch (currentStep) {
+      case 1: return 'قبول فحص الأهلية';
+      case 2: return 'قبول تقديم الطلب';
+      case 3: return 'تأكيد تسليم المبلغ وإكمال الطلب';
+      default: return 'الطلب مكتمل';
+    }
+  }
+
+  /// Returns the next step name for the confirmation dialog
+  static String _nextStepName(int currentStep) {
+    switch (currentStep) {
+      case 1: return 'تقديم الطلب';
+      case 2: return 'تسليم المبلغ';
+      case 3: return 'مكتملة';
+      default: return 'مكتملة';
+    }
+  }
+
+  bool _isDataUploadedForStep(RequestModel model) {
+    if (model.currentStep == 1) return true;
+    if (model.currentStep == 2) {
+      return model.step2DisplayData.isNotEmpty || model.step2Images.isNotEmpty;
+    }
+    if (model.currentStep == 3) {
+      // Step 3 does not expect any payment receipt upload from the client.
+      return true;
+    }
+    return true;
+  }
+
   Widget _buildBottomActionBar(
     BuildContext context,
     RequestModel model,
     String normalizedId,
   ) {
     final status = model.status.trim();
-    final isApproved = status == 'approved' || status == 'eligibility_approved' || status == 'request_approved' || status == 'transfer_approved' || status == 'مقبول' || status == 'موافق عليه' || status == 'مكتملة' || status == 'مكتمل';
+    // Only fully "done" when status is exactly 'approved' or its Arabic equivalent
+    final isFullyApproved = status == 'approved' || status == 'مكتملة' || status == 'مكتمل' || status == 'transfer_approved';
     final isRejected = status == 'not approved' || status == 'مرفوض';
+    final canAccept = _isDataUploadedForStep(model);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -1282,7 +713,7 @@ class RequestDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            if (isApproved)
+            if (isFullyApproved)
               Expanded(
                 child: Container(
                   height: 48,
@@ -1383,17 +814,28 @@ class RequestDetailsPage extends StatelessWidget {
               Expanded(
                 child: GestureDetector(
                   onTap: () async {
+                    if (!canAccept) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('لا يمكن الإكمال لعدم توفر بيانات / إيصال هذه الخطوة حتى الآن'),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.amber.shade700,
+                        ),
+                      );
+                      return;
+                    }
+
                     final cubit = context.read<RequestsCubit>();
-                    final nextStep = model.currentStep < 4 ? model.currentStep + 1 : 4;
-                    final newStatus = {2: 'تقديم طلب', 3: 'انتظار تسليم المبلغ', 4: 'مكتملة'}[nextStep] ?? '';
+                    final nextStep = _nextStepName(model.currentStep);
+                    final btnLabel = _acceptButtonLabel(model.currentStep);
 
                     final confirm = await _showCreativeConfirmDialog(
                       context: context,
-                      title: 'قبول وتمرير الطلب',
-                      message: 'هل أنت متأكد من الموافقة على الطلب وتمريره إلى خطوة "$newStatus"؟',
+                      title: btnLabel,
+                      message: 'هل أنت متأكد من الموافقة على الطلب وتمريره إلى مرحلة "$nextStep"؟',
                       primaryColor: const Color(0xFF4A4499),
                       icon: Icons.verified_user,
-                      confirmText: 'نعم، قبول الطلب',
+                      confirmText: 'نعم، $btnLabel',
                     );
 
                     if (confirm == true) {
@@ -1407,23 +849,28 @@ class RequestDetailsPage extends StatelessWidget {
                       );
 
                       if (context.mounted) {
-                        _showSuccessLottieOverlay(context, newStatus);
+                        _showSuccessLottieOverlay(context, nextStep);
                       }
                     }
                   },
                   child: Container(
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4A4499),
+                      color: canAccept ? const Color(0xFF4A4499) : Colors.grey.shade400,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'قبول الطلب',
-                          style: AppTextStyles.readexMedium16.copyWith(color: Colors.white),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _acceptButtonLabel(model.currentStep),
+                              style: AppTextStyles.readexMedium16.copyWith(color: Colors.white),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         const Icon(Icons.check, color: Colors.white, size: 18),
@@ -1497,8 +944,10 @@ class _RequestDetailsStepperState extends State<RequestDetailsStepper>
             status == 'approved';
       case 3:
         return status == 'transfer_approved' || status == 'approved';
+      case 4:
+        return status == 'transfer_approved' || status == 'approved' || status == 'مكتملة';
       default:
-        return status == 'approved';
+        return status == 'transfer_approved' || status == 'approved';
     }
   }
 
@@ -1702,9 +1151,6 @@ class _StepDetailSheet extends StatelessWidget {
                   child: _buildContent(context),
                 ),
               ),
-              // Step-3 action buttons
-              if (stepNumber == 3 && isCompleted && !isApproved)
-                _buildStep3Actions(context),
             ],
           ),
         ),
@@ -2522,118 +1968,7 @@ class _StepDetailSheet extends StatelessWidget {
     );
   }
 
-  // ─── Step-3 action bar ────────────────────────────────────────────────────────
 
-  Widget _buildStep3Actions(BuildContext sheetCtx) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, -4))
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            // Chat
-            _iconBtn(
-              icon: Icons.chat_bubble_outline,
-              bg: Colors.white,
-              fg: const Color(0xFF2A2375),
-              onTap: () {
-                final clientId = model.raw['userId'] ?? 'CUSTOMER-001';
-                final clientName = model.name;
-                Navigator.push(
-                  sheetCtx,
-                  MaterialPageRoute(
-                    builder: (context) => ChatDetailsView(
-                      client: ChatClient(id: clientId, name: clientName),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 10),
-            // Reject
-            _iconBtn(
-              icon: Icons.delete_outline,
-              bg: const Color(0xFFFFEBEB),
-              fg: const Color(0xFFFF4B4B),
-              onTap: () async {
-                Navigator.pop(sheetCtx);
-                await cubit.rejectRequest(model);
-                if (parentContext.mounted) {
-                  Navigator.pop(parentContext);
-                  ScaffoldMessenger.of(parentContext).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم رفض الطلب وحذفه'),
-                      backgroundColor: Color(0xFFFF4B4B),
-                    ),
-                  );
-                }
-              },
-            ),
-            const SizedBox(width: 10),
-            // تم دفع المبلغ
-            Expanded(
-              child: GestureDetector(
-                onTap: () async {
-                  Navigator.pop(sheetCtx);
-                  await cubit.acceptRequest(model);
-                  if (parentContext.mounted) {
-                    ScaffoldMessenger.of(parentContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ تم تأكيد دفع المبلغ وإتمام الطلب'),
-                        backgroundColor: Color(0xFF2ECA7D),
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2ECA7D), Color(0xFF17A85A)],
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2ECA7D).withOpacity(0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 5),
-                      )
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.payments_outlined, color: Colors.white, size: 18),
-                      SizedBox(width: 8),
-                      Text('تم دفع المبلغ',
-                          style: TextStyle(
-                              fontFamily: 'ReadexPro',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _iconBtn({required IconData icon, required Color bg, required Color fg, required VoidCallback onTap}) {
     return GestureDetector(
@@ -2824,6 +2159,92 @@ class _FullscreenImagePageState extends State<_FullscreenImagePage>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Step Status Badge ─────────────────────────────────────────────────────────
+
+class _StepStatusBadge extends StatelessWidget {
+  final bool isApproved;
+  final bool isActive;
+  final Color color;
+
+  const _StepStatusBadge({
+    required this.isApproved,
+    required this.isActive,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isActive) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          'لم تبدأ',
+          style: TextStyle(
+            fontFamily: 'ReadexPro',
+            fontSize: 9,
+            color: Colors.grey.shade400,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
+    if (isApproved) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8FAF0),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle_rounded, size: 9, color: Color(0xFF2ECA7D)),
+            SizedBox(width: 2),
+            Text(
+              'مكتملة',
+              style: TextStyle(
+                fontFamily: 'ReadexPro',
+                fontSize: 9,
+                color: Color(0xFF2ECA7D),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.schedule_rounded, size: 9, color: color),
+          const SizedBox(width: 2),
+          Text(
+            'جارية',
+            style: TextStyle(
+              fontFamily: 'ReadexPro',
+              fontSize: 9,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

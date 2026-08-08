@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Represents one monthly installment payment linked to a financing request.
 class PaymentModel {
   final String id;           // Firestore doc ID
+  final String path;         // Exact document reference path
   final String requestId;    // Linked financing request doc ID
   final String collection;   // Source collection of the request
   final String userName;
@@ -16,6 +17,7 @@ class PaymentModel {
 
   const PaymentModel({
     required this.id,
+    required this.path,
     required this.requestId,
     required this.collection,
     required this.userName,
@@ -30,32 +32,34 @@ class PaymentModel {
 
   // ── Factory ──────────────────────────────────────────────────────────────────
 
-  factory PaymentModel.fromFirestore(String docId, Map<String, dynamic> data) {
+  factory PaymentModel.fromFirestore(
+    DocumentReference ref, 
+    Map<String, dynamic> data, 
+    String fetchedUserName,
+  ) {
     return PaymentModel(
-      id:            docId,
-      requestId:     data['requestId']?.toString() ?? '',
-      collection:    data['collection']?.toString() ?? 'FinancingRequests',
-      userName:      data['userName']?.toString() ?? 'بدون اسم',
-      paymentNumber: (data['paymentNumber'] as num?)?.toInt() ?? 0,
+      id:            ref.id,
+      path:          ref.path,
+      requestId:     ref.parent.parent?.id ?? '',
+      collection:    ref.parent.parent?.parent.id ?? 'FinancingRequests',
+      userName:      fetchedUserName,
+      paymentNumber: (data['month'] as num?)?.toInt() ?? 0,
       amount:        (data['amount'] as num?)?.toDouble() ?? 0.0,
       dueDate:       _toDateTime(data['dueDate']) ?? DateTime.now(),
-      status:        data['status']?.toString() ?? 'pending',
+      status:        data['status']?.toString() ?? 'pending_payment',
       receiptUrl:    data['receiptUrl']?.toString(),
-      uploadedAt:    _toDateTime(data['uploadedAt']),
+      uploadedAt:    _toDateTime(data['updatedAt']) ?? _toDateTime(data['uploadedAt']),
       approvedAt:    _toDateTime(data['approvedAt']),
     );
   }
 
   Map<String, dynamic> toFirestore() => {
-    'requestId':     requestId,
-    'collection':    collection,
-    'userName':      userName,
-    'paymentNumber': paymentNumber,
+    'month':         paymentNumber,
     'amount':        amount,
-    'dueDate':       Timestamp.fromDate(dueDate),
+    'dueDate':       dueDate.toIso8601String(),
     'status':        status,
     if (receiptUrl != null) 'receiptUrl': receiptUrl,
-    if (uploadedAt != null) 'uploadedAt': Timestamp.fromDate(uploadedAt!),
+    if (uploadedAt != null) 'updatedAt': Timestamp.fromDate(uploadedAt!),
     if (approvedAt != null) 'approvedAt': Timestamp.fromDate(approvedAt!),
   };
 
@@ -63,7 +67,8 @@ class PaymentModel {
 
   String get statusLabel {
     switch (status) {
-      case 'pending':      return 'مستحقة';
+      case 'pending':      
+      case 'pending_payment': return 'مستحقة';
       case 'under_review': return 'قيد المراجعة';
       case 'approved':     return 'مسددة';
       case 'rejected':     return 'مرفوضة';

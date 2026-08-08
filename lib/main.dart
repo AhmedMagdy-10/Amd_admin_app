@@ -9,14 +9,18 @@ import 'firebase_options.dart';
 
 import 'core/services/firebase_messaging_service.dart';
 
+import 'feature/notifications/logic/notifications_cubit.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Start the single Firestore listener for the entire app lifetime
+
   RequestsRepository.instance.init();
 
   // Initialize background & foreground FCM handlers and request permissions
+
   try {
     await FirebaseMessagingService().initialize();
   } catch (e) {
@@ -31,9 +35,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<RequestsCubit>(
-      // One cubit for the whole app — shared across all screens
-      create: (_) => RequestsCubit()..init(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<RequestsCubit>(
+          // One cubit for the whole app — shared across all screens
+          create: (_) => RequestsCubit()..init(),
+        ),
+        BlocProvider<NotificationsCubit>(
+          create: (_) => NotificationsCubit()..init(),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Amd Admin',

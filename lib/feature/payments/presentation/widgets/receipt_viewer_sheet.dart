@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/payment_model.dart';
 import '../../logic/payments_cubit.dart';
-import '../../logic/payments_state.dart';
+
+
+import 'package:url_launcher/url_launcher.dart';
 
 /// Full-screen receipt viewer shown when admin taps "عرض الإيصال".
 class ReceiptViewerSheet extends StatelessWidget {
@@ -41,7 +43,7 @@ class ReceiptViewerSheet extends StatelessWidget {
                 panEnabled: true,
                 scaleEnabled: true,
                 child: Center(
-                  child: payment.receiptUrl != null
+                  child: payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty
                       ? Image.network(
                           payment.receiptUrl!,
                           fit: BoxFit.contain,
@@ -53,17 +55,32 @@ class ReceiptViewerSheet extends StatelessWidget {
                               ),
                             );
                           },
-                          errorBuilder: (_, __, ___) => const Center(
+                          errorBuilder: (_, __, ___) => Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.broken_image,
+                                const Icon(Icons.broken_image,
                                     size: 64, color: Colors.white30),
-                                SizedBox(height: 12),
-                                Text(
-                                  'تعذّر تحميل الصورة',
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'تعذّر عرض الصورة داخل التطبيق',
                                   style: TextStyle(
-                                      color: Colors.white54, fontSize: 14),
+                                      color: Colors.white54, fontSize: 14, fontFamily: 'ReadexPro'),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: () async {
+                                    final url = Uri.tryParse(payment.receiptUrl ?? '');
+                                    if (url != null && await canLaunchUrl(url)) {
+                                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF4A4499),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  icon: const Icon(Icons.open_in_browser, size: 18),
+                                  label: const Text('فتح في المتصفح', style: TextStyle(fontFamily: 'ReadexPro')),
                                 ),
                               ],
                             ),
@@ -96,10 +113,11 @@ class ReceiptViewerSheet extends StatelessWidget {
 
             // ── Action Buttons ─────────────────────────────────────────────────
             if (payment.status == 'under_review' || payment.status == 'pending')
-              StatefulBuilder(
-                builder: (context, setState) {
+              Builder(
+                builder: (context) {
                   bool isLoading = false;
-
+                  return StatefulBuilder(
+                    builder: (context, setState) {
                   return Container(
                     color: const Color(0xFF1A1A2E),
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -189,6 +207,8 @@ class ReceiptViewerSheet extends StatelessWidget {
                           ),
                   );
                 },
+              );
+              },
               ),
 
             if (payment.status == 'approved')

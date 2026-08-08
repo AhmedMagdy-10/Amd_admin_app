@@ -8,7 +8,16 @@ class ChatClient {
   });
 
   factory ChatClient.fromMap(String id, Map<String, dynamic> map) {
-    String name = map['name'] ?? map['firstName'] ?? '';
+    final firstName = (map['firstName'] ?? map['first_name'] ?? '').toString().trim();
+    final lastName = (map['lastName'] ?? map['last_name'] ?? '').toString().trim();
+    
+    String name = '';
+    if (firstName.isNotEmpty || lastName.isNotEmpty) {
+      name = '$firstName $lastName'.trim();
+    } else {
+      name = (map['name'] ?? map['fullName'] ?? map['clientName'] ?? '').toString().trim();
+    }
+    
     if (name.isEmpty) {
       name = 'عميل ($id)'; // Fallback to "Client (ID)"
     }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/payment_model.dart';
 import '../../logic/payments_cubit.dart';
-import 'receipt_viewer_sheet.dart';
+import '../user_payments_details_page.dart';
 
 class UserPaymentsGroup {
   final String userName;
@@ -94,8 +94,6 @@ class UserPaymentsGroupCard extends StatefulWidget {
 }
 
 class _UserPaymentsGroupCardState extends State<UserPaymentsGroupCard> {
-  bool _isExpanded = false;
-
   @override
   Widget build(BuildContext context) {
     final g = widget.group;
@@ -120,9 +118,15 @@ class _UserPaymentsGroupCardState extends State<UserPaymentsGroupCard> {
           // ── Header Row (Tap to expand) ──────────────────────────────────────
           InkWell(
             onTap: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => UserPaymentsDetailsPage(
+                    group: widget.group,
+                    cubit: context.read<PaymentsCubit>(),
+                  ),
+                ),
+              );
             },
             borderRadius: BorderRadius.circular(20),
             child: Padding(
@@ -244,11 +248,11 @@ class _UserPaymentsGroupCardState extends State<UserPaymentsGroupCard> {
                       const SizedBox(width: 24),
                       _financialItem('المبلغ المحصّل', 'ر.س ${g.paidAmount.toStringAsFixed(0)}', highlight: true),
                       const Spacer(),
-                      // Expansion Arrow
+                      // Navigation Arrow
                       Icon(
-                        _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                        color: Colors.grey.shade500,
-                        size: 22,
+                        Icons.arrow_forward_ios_rounded,
+                        color: Colors.grey.shade400,
+                        size: 16,
                       ),
                     ],
                   ),
@@ -256,151 +260,6 @@ class _UserPaymentsGroupCardState extends State<UserPaymentsGroupCard> {
               ),
             ),
           ),
-
-          // ── Expanded Installments List ─────────────────────────────────────
-          if (_isExpanded) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
-              child: Divider(height: 1, color: Color(0xFFF0F0F5)),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: const Color(0xFFFCFDFE),
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: g.payments.length,
-                separatorBuilder: (_, __) => const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18),
-                  child: Divider(height: 1, color: Color(0xFFF6F6FA)),
-                ),
-                itemBuilder: (context, index) {
-                  final p = g.payments[index];
-                  final pStatusInfo = _installmentStatusInfo(p.status);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 11,
-                                  backgroundColor: const Color(0xFF4A4499).withValues(alpha: 0.08),
-                                  child: Text(
-                                    '${p.paymentNumber}',
-                                    style: const TextStyle(
-                                      fontFamily: 'ReadexPro',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF4A4499),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'الدفعة رقم ${p.paymentNumber}',
-                                  style: const TextStyle(
-                                    fontFamily: 'ReadexPro',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2A2375),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            // Mini Status Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: pStatusInfo.bg,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                p.statusLabel,
-                                style: TextStyle(
-                                  fontFamily: 'ReadexPro',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: pStatusInfo.fg,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _installmentInfoItem(Icons.calendar_today_rounded, 'تاريخ الاستحقاق', _formatDate(p.dueDate)),
-                            _installmentInfoItem(Icons.attach_money_rounded, 'المبلغ المطلوب', 'ر.س ${p.amount.toStringAsFixed(0)}'),
-                          ],
-                        ),
-
-                        // Action Button (Approve/Review)
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => BlocProvider.value(
-                                    value: context.read<PaymentsCubit>(),
-                                    child: ReceiptViewerSheet(payment: p),
-                                  ),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: p.status == 'approved'
-                                  ? const Color(0xFF2ECA7D).withValues(alpha: 0.1)
-                                  : const Color(0xFF4A4499).withValues(alpha: 0.08),
-                              foregroundColor: p.status == 'approved'
-                                  ? const Color(0xFF2ECA7D)
-                                  : const Color(0xFF4A4499),
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: Icon(
-                              p.status == 'approved' 
-                                ? Icons.verified_rounded 
-                                : (p.receiptUrl != null && p.receiptUrl!.isNotEmpty 
-                                    ? Icons.attach_file_rounded 
-                                    : Icons.edit_note_rounded),
-                              size: 16,
-                            ),
-                            label: Text(
-                              p.status == 'approved' 
-                                ? 'معتمد — عرض التفاصيل' 
-                                : (p.receiptUrl != null && p.receiptUrl!.isNotEmpty 
-                                    ? 'مراجعة الإيصال واعتماده' 
-                                    : 'إدارة الدفعة (اعتماد/رفض)'),
-                              style: const TextStyle(
-                                fontFamily: 'ReadexPro',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
         ],
       ),
     );
@@ -432,40 +291,7 @@ class _UserPaymentsGroupCardState extends State<UserPaymentsGroupCard> {
     );
   }
 
-  Widget _installmentInfoItem(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 12, color: Colors.grey.shade400),
-        const SizedBox(width: 4),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'ReadexPro',
-                fontSize: 11,
-                color: Colors.grey.shade500,
-              ),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontFamily: 'ReadexPro',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
-  }
 
   _StatusInfo _statusInfo(String status) {
     switch (status) {
@@ -477,19 +303,6 @@ class _UserPaymentsGroupCardState extends State<UserPaymentsGroupCard> {
         return _StatusInfo(bg: const Color(0xFFFFEBEB), fg: const Color(0xFFFF6B6B));
       default:
         return _StatusInfo(bg: const Color(0xFFF0F0F5), fg: const Color(0xFF7070A0));
-    }
-  }
-
-  _StatusInfo _installmentStatusInfo(String status) {
-    switch (status) {
-      case 'under_review':
-        return _StatusInfo(bg: const Color(0xFFFFF4E5), fg: const Color(0xFFFFB03A));
-      case 'approved':
-        return _StatusInfo(bg: const Color(0xFFE8FAF0), fg: const Color(0xFF2ECA7D));
-      case 'rejected':
-        return _StatusInfo(bg: const Color(0xFFFFEBEB), fg: const Color(0xFFFF6B6B));
-      default:
-        return _StatusInfo(bg: const Color(0xFFF5F5FA), fg: const Color(0xFF9E9E9E));
     }
   }
 }
