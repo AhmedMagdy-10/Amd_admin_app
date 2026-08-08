@@ -106,14 +106,9 @@ class ClientsCubit extends Cubit<ClientsState> {
 
         final List<ChatClient> clientsList = [];
 
-        // Always include CUSTOMER-001 first (hardcoded for testing)
-        final customer001Name = nameMap['CUSTOMER-001'] ?? 'CUSTOMER-001';
-        clientsList.add(ChatClient(id: 'CUSTOMER-001', name: customer001Name));
-
-        // Add all other clients from chats collection
+        // Add all clients from chats collection
         for (final doc in snapshot.docs) {
           final clientId = doc.id;
-          if (clientId == 'CUSTOMER-001') continue; // already added
           final name = nameMap[clientId] ?? clientId;
           clientsList.add(ChatClient(id: clientId, name: name));
         }
