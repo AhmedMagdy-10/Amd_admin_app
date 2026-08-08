@@ -61,7 +61,7 @@ class ChatCubit extends Cubit<ChatState> {
     }
 
     try {
-      final imageUrl = await _repository.uploadImageToImgbb(imageFile);
+      final imageUrl = await _repository.uploadImageToFirebase(imageFile);
       if (imageUrl != null) {
         await _repository.sendMessage(
           clientId: clientId,

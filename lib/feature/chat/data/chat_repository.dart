@@ -1,15 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 import 'chat_message.dart';
 import 'chat_client.dart';
 
 class ChatRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // Replace with your actual Imgbb API key
-  final String _imgbbApiKey = 'YOUR_IMGBB_API_KEY_HERE';
 
   /// Fetch all users from Firestore users collection as ChatClients
   Stream<List<ChatClient>> getClientsStream() {
@@ -62,27 +60,18 @@ class ChatRepository {
     });
   }
 
-  /// Upload image to Imgbb and return the URL
-  Future<String?> uploadImageToImgbb(File imageFile) async {
+  /// Upload image to Firebase Storage and return the URL
+  Future<String?> uploadImageToFirebase(File imageFile) async {
     try {
-      final bytes = await imageFile.readAsBytes();
-      final base64Image = base64Encode(bytes);
-
-      final uri = Uri.parse('https://api.imgbb.com/1/upload');
-      final response = await http.post(uri, body: {
-        'key': _imgbbApiKey,
-        'image': base64Image,
-      });
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['data']['url'];
-      } else {
-        print('Imgbb upload failed: ${response.body}');
-        return null;
-      }
+      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final storageRef = FirebaseStorage.instance.ref().child('chat_images').child('$fileName.jpg');
+      
+      final uploadTask = await storageRef.putFile(imageFile);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      
+      return downloadUrl;
     } catch (e) {
-      print('Error uploading to Imgbb: $e');
+      print('Firebase Storage upload failed: $e');
       return null;
     }
   }
