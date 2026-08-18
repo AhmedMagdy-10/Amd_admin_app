@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/widgets/custom_toast.dart';
 import '../../auth/presentation/views/login_view.dart';
 
 class ChangePasswordView extends StatefulWidget {
@@ -52,9 +53,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
       await user.updatePassword(_newPasswordController.text);
       
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مجدداً.', style: TextStyle(fontFamily: 'ReadexPro'))),
-      );
+      showToast(text: 'تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مجدداً.', state: ToastStates.success);
       
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;

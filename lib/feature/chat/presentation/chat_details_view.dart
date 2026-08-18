@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/custom_toast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../logic/chat_cubit.dart';
 import '../data/chat_message.dart';
@@ -80,7 +81,7 @@ class _ChatContentState extends State<_ChatContent> {
       body: BlocConsumer<ChatCubit, ChatState>(
         listener: (context, state) {
           if (state is ChatError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
+            showToast(text: state.error, state: ToastStates.error);
           }
         },
         builder: (context, state) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/widgets/custom_toast.dart';
 import '../../data/models/payment_model.dart';
 import '../../logic/payments_cubit.dart';
 
@@ -268,35 +269,9 @@ class ReceiptViewerSheet extends StatelessWidget {
   }
 
   void _showSnackBar(BuildContext context, String message, bool isSuccess) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isSuccess ? Icons.check_circle_rounded : Icons.error_outline_rounded,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  fontFamily: 'ReadexPro',
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: isSuccess ? const Color(0xFF2ECA7D) : const Color(0xFFFF6B6B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
-        duration: const Duration(seconds: 3),
-      ),
+    showToast(
+      text: message,
+      state: isSuccess ? ToastStates.success : ToastStates.error,
     );
   }
 }

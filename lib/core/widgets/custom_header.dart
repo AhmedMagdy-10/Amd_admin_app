@@ -1,4 +1,5 @@
 import 'package:amd_admin/core/utils/app_text_styles.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../feature/notifications/logic/notifications_cubit.dart';
@@ -36,39 +37,50 @@ class CustomHeader extends StatelessWidget {
         children: [
           // User Profile Info (First child -> goes to the Right in RTL)
           Expanded(
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Colors.white,
-                  backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/100?img=11',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          name,
-                          style: AppTextStyles.readexSemiBold20.copyWith(
-                            color: textColor,
+            child: StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.userChanges(),
+              builder: (context, snapshot) {
+                final user = snapshot.data;
+                final displayName = user?.displayName?.isNotEmpty == true
+                    ? 'مرحبا، ${user!.displayName}'
+                    : name; // Fallback to provided name
+                final photoUrl = user?.photoURL;
+
+                return Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: Colors.white,
+                      backgroundImage: photoUrl != null
+                          ? NetworkImage(photoUrl)
+                          : const AssetImage('assets/images/amad_icon.png') as ImageProvider,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              displayName,
+                              style: AppTextStyles.readexSemiBold20.copyWith(
+                                color: textColor,
+                              ),
+                            ),
                           ),
-                        ),
+                          Text(
+                            role,
+                            style: AppTextStyles.readexRegular14.copyWith(
+                              color: subtitleColor,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        role,
-                        style: AppTextStyles.readexRegular14.copyWith(
-                          color: subtitleColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              }
             ),
           ),
           const SizedBox(width: 12),

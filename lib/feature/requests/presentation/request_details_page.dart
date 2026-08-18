@@ -5,7 +5,8 @@ import '../data/models/request_model.dart';
 import '../logic/requests_cubit.dart';
 import '../../chat/data/chat_client.dart';
 import '../../chat/presentation/chat_details_view.dart';
-import '../logic/requests_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/widgets/custom_toast.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import 'package:lottie/lottie.dart';
@@ -790,11 +791,9 @@ class RequestDetailsPage extends StatelessWidget {
 
                     if (context.mounted) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم رفض وحذف الطلب بنجاح وإرسال إشعار للعميل'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
+                      showToast(
+                        text: 'تم رفض وحذف الطلب بنجاح وإرسال إشعار للعميل',
+                        state: ToastStates.success,
                       );
                     }
                   }
@@ -815,12 +814,9 @@ class RequestDetailsPage extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () async {
                     if (!canAccept) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('لا يمكن الإكمال لعدم توفر بيانات / إيصال هذه الخطوة حتى الآن'),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Colors.amber.shade700,
-                        ),
+                      showToast(
+                        text: 'لا يمكن الإكمال لعدم توفر بيانات / إيصال هذه الخطوة حتى الآن',
+                        state: ToastStates.error,
                       );
                       return;
                     }
