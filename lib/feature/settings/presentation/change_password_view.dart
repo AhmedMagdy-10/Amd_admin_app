@@ -16,6 +16,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+  bool _obscureOld = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
 
   @override
   void dispose() {
@@ -121,16 +124,28 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
             _buildTextField(
               controller: _oldPasswordController,
               label: 'كلمة المرور الحالية',
+              obscureText: _obscureOld,
+              onToggle: () {
+                setState(() => _obscureOld = !_obscureOld);
+              },
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _newPasswordController,
               label: 'كلمة المرور الجديدة',
+              obscureText: _obscureNew,
+              onToggle: () {
+                setState(() => _obscureNew = !_obscureNew);
+              },
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _confirmPasswordController,
               label: 'تأكيد كلمة المرور الجديدة',
+              obscureText: _obscureConfirm,
+              onToggle: () {
+                setState(() => _obscureConfirm = !_obscureConfirm);
+              },
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -155,15 +170,27 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller, required String label}) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscureText,
+    required VoidCallback onToggle,
+  }) {
     return TextField(
       controller: controller,
-      obscureText: true,
+      obscureText: obscureText,
       style: const TextStyle(fontFamily: 'ReadexPro'),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(fontFamily: 'ReadexPro'),
         prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF4A4499)),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscureText ? Icons.visibility_off : Icons.visibility,
+            color: Colors.grey,
+          ),
+          onPressed: onToggle,
+        ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
