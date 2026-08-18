@@ -5,7 +5,7 @@ import '../data/models/request_model.dart';
 import '../logic/requests_cubit.dart';
 import '../../chat/data/chat_client.dart';
 import '../../chat/presentation/chat_details_view.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../logic/requests_state.dart';
 import '../../../../core/widgets/custom_toast.dart';
 import '../../../../core/services/firebase_messaging_service.dart';
 import '../../../../core/utils/app_text_styles.dart';
