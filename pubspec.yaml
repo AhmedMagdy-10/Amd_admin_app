@@ -49,6 +49,7 @@ dependencies:
   http: ^1.2.2
   intl: ^0.20.3
   url_launcher: ^6.3.2
+  firebase_auth: ^6.5.7
 
 dev_dependencies:
   flutter_test:

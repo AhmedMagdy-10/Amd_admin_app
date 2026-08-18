@@ -1,4 +1,6 @@
 import 'package:amd_admin/feature/home/home_page.dart';
+import 'package:amd_admin/feature/auth/presentation/views/login_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'animated_logo.dart';
 import 'animated_subtitle.dart';
@@ -43,7 +45,10 @@ class _SplashViewBodyState extends State<SplashViewBody> {
               context,
               PageRouteBuilder(
                 transitionDuration: const Duration(milliseconds: 600),
-                pageBuilder: (context, animation, secondaryAnimation) => const HomePage(),
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  final user = FirebaseAuth.instance.currentUser;
+                  return user != null ? const HomePage() : const LoginView();
+                },
                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                   return FadeTransition(
                     opacity: animation,

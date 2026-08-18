@@ -4,6 +4,7 @@ import '../../feature/dashboard/presentation/dashboard_view.dart';
 import '../../feature/requests/presentation/requests_view.dart';
 import '../../feature/payments/presentation/payments_view.dart';
 import '../chat/presentation/chats_list_view.dart';
+import '../settings/presentation/settings_view.dart';
 import 'logic/home_cubit.dart';
 import 'widgets/custom_bottom_nav_bar.dart';
 
@@ -27,7 +28,7 @@ class _HomeContent extends StatelessWidget {
     RequestsView(),
     PaymentsView(),
     ChatsListView(),
-    Center(child: Text('الأعدادات (Settings)')),
+    SettingsView(),
   ];
 
   @override
