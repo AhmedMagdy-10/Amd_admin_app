@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -46,7 +46,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء التحديث: \', style: const TextStyle(fontFamily: 'ReadexPro'))),
+          SnackBar(content: Text('حدث خطأ أثناء التحديث', style: const TextStyle(fontFamily: 'ReadexPro'))),
         );
       }
     } finally {
