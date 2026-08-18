@@ -1853,47 +1853,63 @@ class _StepDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _field(String label, String value) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label,
-          style: TextStyle(fontFamily: 'ReadexPro', fontSize: 11, color: Colors.grey.shade500)),
-      const SizedBox(height: 3),
-      if (value.isNotEmpty && value != '—')
-        InkWell(
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: value));
-            showToast(text: 'تم النسخ بنجاح', state: ToastStates.success);
-          },
-          borderRadius: BorderRadius.circular(4),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(value,
-                      style: const TextStyle(
-                          fontFamily: 'ReadexPro',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87)),
-                ),
-                const SizedBox(width: 4),
-                Icon(Icons.copy, size: 14, color: Colors.grey.shade400),
-              ],
-            ),
-          ),
-        )
-      else
-        Text('—',
-            style: const TextStyle(
-                fontFamily: 'ReadexPro',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87)),
-    ],
-  );
+  Widget _field(String label, String value) {
+    final bool isImportant = label.contains('بريد') || 
+                             label.contains('هوية') || 
+                             label.contains('جوال') || 
+                             label.contains('ايبان') || 
+                             label.contains('آيبان') || 
+                             label.contains('حساب');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(fontFamily: 'ReadexPro', fontSize: 11, color: Colors.grey.shade500)),
+        const SizedBox(height: 3),
+        if (value.isNotEmpty && value != '—')
+          isImportant
+              ? InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: value));
+                    showToast(text: 'تم النسخ بنجاح', state: ToastStates.success);
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(value,
+                              style: const TextStyle(
+                                  fontFamily: 'ReadexPro',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87)),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.copy, size: 14, color: Colors.grey.shade400),
+                      ],
+                    ),
+                  ),
+                )
+              : Text(value,
+                  style: const TextStyle(
+                      fontFamily: 'ReadexPro',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87))
+        else
+          const Text('—',
+              style: TextStyle(
+                  fontFamily: 'ReadexPro',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87)),
+      ],
+    );
+  }
 
   Widget _attachmentsCard(Map<String, String> images) {
     const labels = <String, String>{
