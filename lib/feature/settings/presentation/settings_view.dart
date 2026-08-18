@@ -1,7 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../auth/presentation/views/login_view.dart';
+import 'edit_profile_view.dart';
+import 'change_password_view.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -58,14 +60,18 @@ class _SettingsViewState extends State<SettingsView> {
                       icon: Icons.person_outline,
                       title: 'البيانات المدير',
                       subtitle: 'البيانات الشخصية + صورة البروفايل',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileView()));
+                      },
                     ),
                     Divider(height: 1, color: Colors.grey.shade200),
                     _buildSettingsItem(
                       icon: Icons.lock_outline,
                       title: 'تغيير كلمة المرور',
                       subtitle: 'يتطلب كلمة قوية',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordView()));
+                      },
                     ),
                   ],
                 ),
