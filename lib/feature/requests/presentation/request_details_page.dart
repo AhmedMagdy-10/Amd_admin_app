@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/models/request_model.dart';
 import '../logic/requests_cubit.dart';
@@ -1858,10 +1859,39 @@ class _StepDetailSheet extends StatelessWidget {
       Text(label,
           style: TextStyle(fontFamily: 'ReadexPro', fontSize: 11, color: Colors.grey.shade500)),
       const SizedBox(height: 3),
-      Text(value.isNotEmpty ? value : '—',
-          style: const TextStyle(
-              fontFamily: 'ReadexPro', fontSize: 13,
-              fontWeight: FontWeight.w600, color: Colors.black87)),
+      if (value.isNotEmpty && value != '—')
+        InkWell(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: value));
+            showToast(text: 'تم النسخ بنجاح', state: ToastStates.success);
+          },
+          borderRadius: BorderRadius.circular(4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(value,
+                      style: const TextStyle(
+                          fontFamily: 'ReadexPro',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87)),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.copy, size: 14, color: Colors.grey.shade400),
+              ],
+            ),
+          ),
+        )
+      else
+        Text('—',
+            style: const TextStyle(
+                fontFamily: 'ReadexPro',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87)),
     ],
   );
 
