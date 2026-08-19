@@ -93,21 +93,22 @@ class FcmApiService {
   }
 
   /// Sends a notification to a user by looking up their FCM token in
-  /// Firestore → users/{userId}/fcmToken
-  ///
-  /// NOTE: Since Auth is not implemented yet, userId is hardcoded as CUSTOMER-001.
-  /// The client app MUST save its FCM token to:
-  ///   users/CUSTOMER-001 → { fcmToken: "..." }
+  /// Firestore → users/{userId}
+  /// Tries multiple field names: fcmToken, token, fcm_token, pushToken
   static Future<void> sendNotificationToUser({
     required String userId,
     required String title,
     required String body,
   }) async {
-    // Hardcode fallback to CUSTOMER-001 while Auth is not implemented
     final String targetId =
-        (userId.isEmpty || userId == 'default_client') ? 'CUSTOMER-001' : userId;
+        (userId.isEmpty || userId == 'default_client') ? '' : userId;
 
-    print('FCM API: Looking for FCM token → users/$targetId/fcmToken');
+    if (targetId.isEmpty) {
+      print('FCM API: ❌ No valid userId provided. Skipping notification.');
+      return;
+    }
+
+    print('FCM API: Looking for FCM token → users/$targetId');
 
     try {
       final doc = await FirebaseFirestore.instance
@@ -123,12 +124,20 @@ class FcmApiService {
       final data = doc.data()!;
       print('FCM API: Document fields found: ${data.keys.toList()}');
 
-      final fcmToken = data['fcmToken']?.toString();
+      // Try multiple common field names the customer app might use
+      final fcmToken = (data['fcmToken'] ??
+              data['token'] ??
+              data['fcm_token'] ??
+              data['pushToken'] ??
+              data['deviceToken'] ??
+              '')
+          .toString();
 
-      if (fcmToken == null || fcmToken.isEmpty) {
+      if (fcmToken.isEmpty) {
         print(
-            'FCM API: ❌ fcmToken is empty for users/$targetId. '
-            'The client app must save its token under the field name "fcmToken".');
+            'FCM API: ❌ No FCM token found for users/$targetId. '
+            'Tried fields: fcmToken, token, fcm_token, pushToken, deviceToken. '
+            'Document fields: ${data.keys.toList()}');
         return;
       }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/widgets/custom_toast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../logic/chat_cubit.dart';
@@ -174,7 +175,13 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMe = message.senderId == 'ADMIN-001';
+    // isMe = true when the message was sent by the currently logged-in admin.
+    // We check the real Firebase UID first, then fall back to the legacy
+    // hardcoded 'ADMIN-001' value for older messages written before auth was wired up.
+    final adminUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final isMe = adminUid.isNotEmpty
+        ? message.senderId == adminUid
+        : message.senderId == 'ADMIN-001';
     
     // Format timestamp manually to avoid locale initialization error
     String timeFormat = '';
