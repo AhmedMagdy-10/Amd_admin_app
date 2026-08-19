@@ -19,12 +19,14 @@ class RequestsRepository {
   final List<StreamSubscription<QuerySnapshot>> _subscriptions = [];
 
   bool _initialized = false;
+  bool _isReady = false; // Tracks if at least one snapshot has fired
 
   Stream<List<RequestModel>> get stream => _controller.stream;
 
   List<RequestModel> get cached => List.unmodifiable(_cache.values.toList());
 
   bool get hasData => _cache.isNotEmpty;
+  bool get isReady => _isReady;
 
   void init() {
     if (_initialized) return;
@@ -57,6 +59,7 @@ class RequestsRepository {
     _subscriptions.clear();
     _controller.close();
     _initialized = false;
+    _isReady = false;
   }
 
   /// Forces a manual refresh of the data by restarting the Firestore streams.
@@ -66,6 +69,7 @@ class RequestsRepository {
     }
     _subscriptions.clear();
     _initialized = false;
+    _isReady = false;
     
     // Restart streams
     init();
@@ -115,6 +119,7 @@ class RequestsRepository {
       );
     }
 
+    _isReady = true;
     _controller.add(cached);
   }
 }

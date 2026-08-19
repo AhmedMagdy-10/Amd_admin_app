@@ -29,6 +29,9 @@ class RequestsCubit extends Cubit<RequestsState> {
     // Emit cached data right away so the UI never shows a stale loading state
     if (_repository.hasData) {
       emit(RequestsLoaded(_repository.cached));
+    } else if (_repository.isReady) {
+      // It's loaded, but it's empty
+      emit(RequestsLoaded(const []));
     } else {
       emit(RequestsLoading());
     }
