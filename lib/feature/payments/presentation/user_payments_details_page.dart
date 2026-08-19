@@ -18,21 +18,34 @@ class UserPaymentsDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayedPayments = group.payments.where((p) {
-      final hasReceipt = p.receiptUrl != null && p.receiptUrl!.isNotEmpty;
-      return hasReceipt || p.status != 'pending';
-    }).toList();
+    return BlocBuilder<PaymentsCubit, PaymentsState>(
+      bloc: cubit,
+      builder: (context, state) {
+        // Find the updated group from the state if loaded
+        UserPaymentsGroup currentGroup = group;
+        if (state is PaymentsLoaded) {
+          final groups = UserPaymentsGroup.groupPayments(state.allPayments);
+          final updated = groups.where((g) => g.requestId == group.requestId && g.userName == group.userName).toList();
+          if (updated.isNotEmpty) {
+            currentGroup = updated.first;
+          }
+        }
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5FB),
+        final displayedPayments = currentGroup.payments.where((p) {
+          final hasReceipt = p.receiptUrl != null && p.receiptUrl!.isNotEmpty;
+          return hasReceipt || p.status != 'pending';
+        }).toList();
+
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            backgroundColor: const Color(0xFFF5F5FB),
         body: SafeArea(
           child: Column(
             children: [
               // Header
               CustomHeader(
-                name: group.userName,
+                name: currentGroup.userName,
                 role: 'تفاصيل الدفعات',
                 textColor: const Color(0xFF4A4499),
                 subtitleColor: Colors.grey,
@@ -239,8 +252,8 @@ class UserPaymentsDetailsPage extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _installmentInfoItem(IconData icon, String label, String value) {

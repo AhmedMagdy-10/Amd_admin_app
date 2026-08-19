@@ -4,13 +4,45 @@ import '../../../../../core/widgets/custom_toast.dart';
 import '../../data/models/payment_model.dart';
 import '../../logic/payments_cubit.dart';
 
-
-import 'package:url_launcher/url_launcher.dart';
-
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:gal/gal.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 /// Full-screen receipt viewer shown when admin taps "عرض الإيصال".
 class ReceiptViewerSheet extends StatelessWidget {
   final PaymentModel payment;
   const ReceiptViewerSheet({super.key, required this.payment});
+
+  Future<void> _downloadReceipt(BuildContext context, String url) async {
+    try {
+      if (context.mounted) {
+        showToast(text: "جاري تحميل الإيصال...", state: ToastStates.warning);
+      }
+      var response = await http.get(Uri.parse(url));
+      
+      // Request permission using gal
+      if (!await Gal.hasAccess()) {
+        await Gal.requestAccess();
+      }
+
+      // Save to temp file
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/receipt_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(response.bodyBytes);
+
+      // Save to gallery
+      await Gal.putImage(tempFile.path);
+      
+      if (context.mounted) {
+        showToast(text: "تم حفظ الإيصال في المعرض بنجاح", state: ToastStates.success);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showToast(text: "حدث خطأ أثناء التحميل: $e", state: ToastStates.error);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +50,16 @@ class ReceiptViewerSheet extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFF0D0D1A),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          title: Text(
-            'إيصال الدفعة ${payment.paymentNumber}',
-            style: const TextStyle(
+        body: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+                title: Text(
+                  'إيصال الدفعة ${payment.paymentNumber}',
+                  style: const TextStyle(
               fontFamily: 'ReadexPro',
               color: Colors.white,
               fontWeight: FontWeight.w700,
@@ -34,29 +69,31 @@ class ReceiptViewerSheet extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Column(
-          children: [
-            // ── Image ──────────────────────────────────────────────────────────
+                actions: [
+                  if (payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.download, color: Colors.white),
+                      onPressed: () => _downloadReceipt(context, payment.receiptUrl!),
+                      tooltip: 'تحميل الإيصال',
+                    ),
+                ],
+              ),
+              // ── Image ──────────────────────────────────────────────────────────
             Expanded(
               child: InteractiveViewer(
                 panEnabled: true,
                 scaleEnabled: true,
                 child: Center(
                   child: payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty
-                      ? Image.network(
-                          payment.receiptUrl!,
+                      ? CachedNetworkImage(
+                          imageUrl: payment.receiptUrl!,
                           fit: BoxFit.contain,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF6A5ACD),
-                              ),
-                            );
-                          },
-                          errorBuilder: (_, __, ___) => Center(
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF6A5ACD),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
