@@ -97,7 +97,7 @@ class ReceiptViewerSheet extends StatelessWidget {
                       child: payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: payment.receiptUrl!,
-                              width: constraints.maxWidth,
+                              width: constraints.maxWidth - 32, // 16px padding on both sides
                               fit: BoxFit.fitWidth,
                               placeholder: (context, url) => const Center(
                                 child: CircularProgressIndicator(
