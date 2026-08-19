@@ -117,6 +117,120 @@ class _ChatContentState extends State<_ChatContent> {
     );
   }
 
+  void _showAttachmentOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (builder) {
+        return Container(
+          height: 250,
+          margin: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _attachmentItem(
+                      icon: Icons.image,
+                      color: Colors.purple,
+                      label: "المعرض",
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.gallery);
+                      },
+                    ),
+                    _attachmentItem(
+                      icon: Icons.camera_alt,
+                      color: Colors.pink,
+                      label: "الكاميرا",
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickImage(ImageSource.camera);
+                      },
+                    ),
+                    _attachmentItem(
+                      icon: Icons.insert_drive_file,
+                      color: Colors.blue,
+                      label: "مستند",
+                      onTap: () {
+                        Navigator.pop(context);
+                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _attachmentItem(
+                      icon: Icons.headset,
+                      color: Colors.orange,
+                      label: "صوت",
+                      onTap: () {
+                        Navigator.pop(context);
+                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
+                      },
+                    ),
+                    _attachmentItem(
+                      icon: Icons.location_on,
+                      color: Colors.green,
+                      label: "الموقع",
+                      onTap: () {
+                        Navigator.pop(context);
+                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
+                      },
+                    ),
+                    _attachmentItem(
+                      icon: Icons.person,
+                      color: Colors.blueAccent,
+                      label: "جهة اتصال",
+                      onTap: () {
+                        Navigator.pop(context);
+                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _attachmentItem({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: color.withValues(alpha: 0.1),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMessageInput(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -159,7 +273,7 @@ class _ChatContentState extends State<_ChatContent> {
                               angle: -0.785, // -45 degrees for upright paperclip
                               child: const Icon(Icons.attach_file, color: Colors.grey),
                             ),
-                            onPressed: () => _pickImage(ImageSource.gallery),
+                            onPressed: () => _showAttachmentOptions(context),
                           ),
                           if (!isTyping)
                             IconButton(
