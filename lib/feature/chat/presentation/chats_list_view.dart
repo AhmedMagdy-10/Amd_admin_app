@@ -76,7 +76,12 @@ class _ChatsListContent extends StatelessWidget {
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: state.filteredClients.length,
-                separatorBuilder: (context, index) => const Divider(height: 1, indent: 80, endIndent: 20, color: Color(0xFFEEEEEE)),
+                separatorBuilder: (context, index) => const Divider(
+                  height: 1,
+                  indent: 80,
+                  endIndent: 20,
+                  color: Color(0xFFEEEEEE),
+                ),
                 itemBuilder: (context, index) {
                   final client = state.filteredClients[index];
                   return InkWell(
@@ -103,7 +108,9 @@ class _ChatsListContent extends StatelessWidget {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF4A4499).withValues(alpha: 0.2),
+                                  color: const Color(
+                                    0xFF4A4499,
+                                  ).withValues(alpha: 0.2),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -133,37 +140,51 @@ class _ChatsListContent extends StatelessWidget {
                                   .orderBy('timestamp', descending: true)
                                   .limit(1)
                                   .snapshots()
-                                  .map((s) => s.docs.map((d) => d.data()).toList()),
+                                  .map(
+                                    (s) => s.docs.map((d) => d.data()).toList(),
+                                  ),
                               builder: (context, snapshot) {
                                 String text = 'اضغط لبدء المحادثة';
                                 String timeText = '';
                                 bool isUnread = false;
                                 bool isMe = false;
 
-                                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                                if (snapshot.hasData &&
+                                    snapshot.data!.isNotEmpty) {
                                   final lastMsgData = snapshot.data!.first;
                                   text = lastMsgData['text'] ?? '';
-                                  if (text.isEmpty && lastMsgData['imageUrl'] != null) {
+                                  if (text.isEmpty &&
+                                      lastMsgData['imageUrl'] != null) {
                                     text = 'صورة مرفقة 📷';
                                   }
-                                  
+
                                   if (lastMsgData['timestamp'] != null) {
-                                    final ts = lastMsgData['timestamp'] as Timestamp;
+                                    final ts =
+                                        lastMsgData['timestamp'] as Timestamp;
                                     final dt = ts.toDate();
                                     final now = DateTime.now();
-                                    if (dt.day == now.day && dt.month == now.month && dt.year == now.year) {
-                                      timeText = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                                    if (dt.day == now.day &&
+                                        dt.month == now.month &&
+                                        dt.year == now.year) {
+                                      timeText =
+                                          "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
                                     } else {
-                                      timeText = "${dt.year}/${dt.month}/${dt.day}";
+                                      timeText =
+                                          "${dt.year}/${dt.month}/${dt.day}";
                                     }
                                   }
-                                  
+
                                   // Simplified unread check (if sender is not me and isRead is false)
-                                  final adminUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-                                  final senderId = lastMsgData['senderId'] ?? '';
+                                  final adminUid =
+                                      FirebaseAuth.instance.currentUser?.uid ??
+                                      '';
+                                  final senderId =
+                                      lastMsgData['senderId'] ?? '';
                                   final isRead = lastMsgData['isRead'] ?? true;
-                                  
-                                  isMe = adminUid.isNotEmpty ? senderId == adminUid : senderId == 'ADMIN-001';
+
+                                  isMe = adminUid.isNotEmpty
+                                      ? senderId == adminUid
+                                      : senderId == 'ADMIN-001';
                                   if (!isMe && !isRead) {
                                     isUnread = true;
                                   }
@@ -174,13 +195,16 @@ class _ChatsListContent extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
                                           child: Text(
                                             client.name,
                                             style: TextStyle(
-                                              fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
+                                              fontWeight: isUnread
+                                                  ? FontWeight.w800
+                                                  : FontWeight.w600,
                                               fontSize: 16,
                                               fontFamily: 'ReadexPro',
                                               color: const Color(0xFF111111),
@@ -194,8 +218,12 @@ class _ChatsListContent extends StatelessWidget {
                                             timeText,
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: isUnread ? const Color(0xFF4A4499) : Colors.grey.shade500,
-                                              fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
+                                              color: isUnread
+                                                  ? const Color(0xFF4A4499)
+                                                  : Colors.grey.shade500,
+                                              fontWeight: isUnread
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
                                               fontFamily: 'ReadexPro',
                                             ),
                                           ),
@@ -205,7 +233,11 @@ class _ChatsListContent extends StatelessWidget {
                                     Row(
                                       children: [
                                         if (isMe) ...[
-                                          Icon(Icons.done_all, size: 16, color: Colors.blue.shade300),
+                                          Icon(
+                                            Icons.done_all,
+                                            size: 16,
+                                            color: Colors.blue.shade300,
+                                          ),
                                           const SizedBox(width: 4),
                                         ],
                                         Expanded(
@@ -214,8 +246,12 @@ class _ChatsListContent extends StatelessWidget {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              color: isUnread ? const Color(0xFF222222) : Colors.grey.shade600,
-                                              fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
+                                              color: isUnread
+                                                  ? const Color(0xFF222222)
+                                                  : Colors.grey.shade600,
+                                              fontWeight: isUnread
+                                                  ? FontWeight.w600
+                                                  : FontWeight.normal,
                                               fontSize: 14,
                                               fontFamily: 'ReadexPro',
                                             ),
@@ -223,7 +259,9 @@ class _ChatsListContent extends StatelessWidget {
                                         ),
                                         if (isUnread)
                                           Container(
-                                            margin: const EdgeInsets.only(right: 8),
+                                            margin: const EdgeInsets.only(
+                                              right: 8,
+                                            ),
                                             padding: const EdgeInsets.all(6),
                                             decoration: const BoxDecoration(
                                               color: Color(0xFF4A4499),
@@ -231,7 +269,11 @@ class _ChatsListContent extends StatelessWidget {
                                             ),
                                             child: const Text(
                                               '1', // Usually dynamic, using '1' as a placeholder for visual WhatsApp style
-                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                       ],
