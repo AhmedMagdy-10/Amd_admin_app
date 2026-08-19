@@ -60,9 +60,7 @@ class _PaymentsContentState extends State<_PaymentsContent> {
                     builder: (context, state) {
                       if (state is! PaymentsLoaded) return const SizedBox.shrink();
 
-                      final groups = UserPaymentsGroup.groupPayments(
-                        state.allPayments,
-                      );
+
                       final underReview = state.allPayments
                           .where((p) => p.status == 'under_review' || p.status == 'pending_review')
                           .length;
