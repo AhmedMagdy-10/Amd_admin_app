@@ -39,8 +39,8 @@ class _ChatContentState extends State<_ChatContent> {
   final ImagePicker _picker = ImagePicker();
   final FirebaseMessagingService _fcmService = FirebaseMessagingService();
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? image = await _picker.pickImage(source: source, imageQuality: 70);
     if (image != null) {
       if (!mounted) return;
       context.read<ChatCubit>().sendImageMessage(File(image.path));
@@ -145,9 +145,19 @@ class _ChatContentState extends State<_ChatContent> {
                   fillColor: Colors.grey.shade100,
                   filled: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.attach_file, color: Colors.grey),
-                    onPressed: _pickImage,
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.attach_file, color: Colors.grey),
+                        onPressed: () => _pickImage(ImageSource.gallery),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
+                        onPressed: () => _pickImage(ImageSource.camera),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                   ),
                 ),
                 textInputAction: TextInputAction.send,

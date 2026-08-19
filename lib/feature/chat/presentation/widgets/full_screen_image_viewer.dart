@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:typed_data';
 
 class FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
@@ -8,13 +10,23 @@ class FullScreenImageViewer extends StatelessWidget {
   const FullScreenImageViewer({super.key, required this.imageUrl});
 
   Future<void> _downloadImage(BuildContext context) async {
-    final Uri url = Uri.parse(imageUrl);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+    try {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر فتح الرابط لتحميل الصورة')),
-        );
+        Fluttertoast.showToast(msg: "جاري تحميل الصورة...");
       }
+      var response = await http.get(Uri.parse(imageUrl));
+      final result = await ImageGallerySaver.saveImage(
+        Uint8List.fromList(response.bodyBytes),
+        quality: 100,
+        name: "chat_image_${DateTime.now().millisecondsSinceEpoch}"
+      );
+      if (result['isSuccess'] == true) {
+        Fluttertoast.showToast(msg: "تم حفظ الصورة في المعرض");
+      } else {
+        Fluttertoast.showToast(msg: "فشل حفظ الصورة");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "حدث خطأ أثناء تحميل الصورة");
     }
   }
 
