@@ -113,7 +113,7 @@ class ReceiptViewerSheet extends StatelessWidget {
             ),
 
             // ── Action Buttons ─────────────────────────────────────────────────
-            if (payment.status == 'under_review' || payment.status == 'pending')
+            if (payment.status != 'paid' && payment.status != 'approved')
               Builder(
                 builder: (context) {
                   bool isLoading = false;

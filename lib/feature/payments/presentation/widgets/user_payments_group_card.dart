@@ -27,7 +27,7 @@ class UserPaymentsGroup {
     if (payments.any((p) => p.status == 'under_review' || p.status == 'pending_review')) {
       return 'under_review';
     }
-    if (payments.every((p) => p.status == 'approved')) {
+    if (payments.every((p) => p.status == 'approved' || p.status == 'paid')) {
       return 'approved';
     }
     if (payments.any((p) => p.status == 'rejected')) {
@@ -46,8 +46,8 @@ class UserPaymentsGroup {
   }
 
   double get totalAmount => payments.fold(0.0, (sum, p) => sum + p.amount);
-  double get paidAmount => payments.where((p) => p.status == 'approved').fold(0.0, (sum, p) => sum + p.amount);
-  int get paidCount => payments.where((p) => p.status == 'approved').length;
+  double get paidAmount => payments.where((p) => p.status == 'approved' || p.status == 'paid').fold(0.0, (sum, p) => sum + p.amount);
+  int get paidCount => payments.where((p) => p.status == 'approved' || p.status == 'paid').length;
   int get totalCount => payments.length;
 
   static List<UserPaymentsGroup> groupPayments(List<PaymentModel> allPayments) {

@@ -70,12 +70,12 @@ class _PaymentsContentState extends State<_PaymentsContent> {
                           .where((g) => g.status == 'rejected')
                           .length;
                       final approved = groups
-                          .where((g) => g.status == 'approved')
+                          .where((g) => g.status == 'approved' || g.status == 'paid')
                           .length;
 
                       final total = state.allPayments.fold<double>(
                         0,
-                        (sum, p) => p.status == 'approved' ? sum + p.amount : sum,
+                        (sum, p) => (p.status == 'approved' || p.status == 'paid') ? sum + p.amount : sum,
                       );
                       return Padding(
                         padding: const EdgeInsets.symmetric(

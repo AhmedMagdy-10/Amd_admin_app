@@ -188,14 +188,14 @@ class UserPaymentsDetailsPage extends StatelessWidget {
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: p.status == 'approved'
+                                      backgroundColor: (p.status == 'approved' || p.status == 'paid')
                                           ? const Color(
                                               0xFF2ECA7D,
                                             ).withValues(alpha: 0.1)
                                           : const Color(
                                               0xFF4A4499,
                                             ).withValues(alpha: 0.08),
-                                      foregroundColor: p.status == 'approved'
+                                      foregroundColor: (p.status == 'approved' || p.status == 'paid')
                                           ? const Color(0xFF2ECA7D)
                                           : const Color(0xFF4A4499),
                                       elevation: 0,
@@ -207,7 +207,7 @@ class UserPaymentsDetailsPage extends StatelessWidget {
                                       ),
                                     ),
                                     icon: Icon(
-                                      p.status == 'approved'
+                                      (p.status == 'approved' || p.status == 'paid')
                                           ? Icons.verified_rounded
                                           : (p.receiptUrl != null &&
                                                     p.receiptUrl!.isNotEmpty
@@ -216,7 +216,7 @@ class UserPaymentsDetailsPage extends StatelessWidget {
                                       size: 18,
                                     ),
                                     label: Text(
-                                      p.status == 'approved'
+                                      (p.status == 'approved' || p.status == 'paid')
                                           ? 'معتمد — عرض التفاصيل'
                                           : (p.receiptUrl != null &&
                                                     p.receiptUrl!.isNotEmpty
@@ -287,6 +287,7 @@ class UserPaymentsDetailsPage extends StatelessWidget {
           fg: const Color(0xFFFFB03A),
         );
       case 'approved':
+      case 'paid':
         return _StatusInfo(
           bg: const Color(0xFFE8FAF0),
           fg: const Color(0xFF2ECA7D),
