@@ -51,13 +51,13 @@ class ReceiptViewerSheet extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFF0D0D1A),
-        body: SafeArea(
-          child: Column(
-            children: [
-              AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                centerTitle: true,
+        body: Column(
+          children: [
+            SizedBox(height: MediaQuery.of(context).padding.top > 24 ? MediaQuery.of(context).padding.top : 36.0), // Padding to avoid status bar
+            AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
                 title: Text(
                   'إيصال الدفعة ${payment.paymentNumber}',
                   style: const TextStyle(
@@ -80,7 +80,7 @@ class ReceiptViewerSheet extends StatelessWidget {
               ),
           ],
         ),
-              // ── Image ──────────────────────────────────────────────────────────
+        // ── Image ──────────────────────────────────────────────────────────
             Expanded(
               child: InteractiveViewer(
                 panEnabled: true,
@@ -282,13 +282,12 @@ class ReceiptViewerSheet extends StatelessWidget {
                     ],
                   ),
                 ),
-            ),
+              ),
           ],
         ), // Column
-      ), // SafeArea
-    ), // Scaffold
-  ); // Directionality
-}
+      ), // Scaffold
+    ); // Directionality
+  }
 
   Widget _infoItem(String label, String value) {
     return Column(
