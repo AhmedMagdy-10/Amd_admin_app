@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../logic/payments_cubit.dart';
+import '../logic/payments_state.dart';
 import 'widgets/user_payments_group_card.dart' show UserPaymentsGroup;
 import 'widgets/receipt_viewer_sheet.dart';
 import '../../../core/widgets/custom_header.dart';
@@ -250,12 +251,13 @@ class UserPaymentsDetailsPage extends StatelessWidget {
                       ),
               ),
             ],
-          ),
-        ),
-      );
-    });
-  }
-
+          ), // Column
+        ), // SafeArea
+      ), // Scaffold
+    ); // Directionality
+  }, // builder
+); // BlocBuilder
+}
   Widget _installmentInfoItem(IconData icon, String label, String value) {
     return Row(
       children: [

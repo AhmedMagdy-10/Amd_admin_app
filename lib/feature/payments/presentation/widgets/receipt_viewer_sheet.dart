@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 /// Full-screen receipt viewer shown when admin taps "عرض الإيصال".
 class ReceiptViewerSheet extends StatelessWidget {
   final PaymentModel payment;
@@ -17,7 +18,7 @@ class ReceiptViewerSheet extends StatelessWidget {
   Future<void> _downloadReceipt(BuildContext context, String url) async {
     try {
       if (context.mounted) {
-        showToast(text: "جاري تحميل الإيصال...", state: ToastStates.warning);
+        showToast(text: "جاري تحميل الإيصال...", state: ToastStates.success);
       }
       var response = await http.get(Uri.parse(url));
       
@@ -69,15 +70,16 @@ class ReceiptViewerSheet extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.pop(context),
-                actions: [
-                  if (payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.download, color: Colors.white),
-                      onPressed: () => _downloadReceipt(context, payment.receiptUrl!),
-                      tooltip: 'تحميل الإيصال',
-                    ),
-                ],
+          ),
+          actions: [
+            if (payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.download, color: Colors.white),
+                onPressed: () => _downloadReceipt(context, payment.receiptUrl!),
+                tooltip: 'تحميل الإيصال',
               ),
+          ],
+        ),
               // ── Image ──────────────────────────────────────────────────────────
             Expanded(
               child: InteractiveViewer(
@@ -280,12 +282,13 @@ class ReceiptViewerSheet extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
+            ),
           ],
-        ),
-      ),
-    );
-  }
+        ), // Column
+      ), // SafeArea
+    ), // Scaffold
+  ); // Directionality
+}
 
   Widget _infoItem(String label, String value) {
     return Column(
