@@ -82,57 +82,68 @@ class ReceiptViewerSheet extends StatelessWidget {
         ),
         // ── Image ──────────────────────────────────────────────────────────
             Expanded(
-              child: InteractiveViewer(
-                panEnabled: true,
-                scaleEnabled: true,
-                child: Center(
-                  child: payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: payment.receiptUrl!,
-                          fit: BoxFit.contain,
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF6A5ACD),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.broken_image,
-                                    size: 64, color: Colors.white30),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'تعذّر عرض الصورة داخل التطبيق',
-                                  style: TextStyle(
-                                      color: Colors.white54, fontSize: 14, fontFamily: 'ReadexPro'),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return InteractiveViewer(
+                    panEnabled: true,
+                    scaleEnabled: true,
+                    constrained: false, // allow child to be taller than viewport
+                    child: Container(
+                      width: constraints.maxWidth,
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      alignment: Alignment.center,
+                      child: payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: payment.receiptUrl!,
+                              width: constraints.maxWidth,
+                              fit: BoxFit.fitWidth,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF6A5ACD),
                                 ),
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    final url = Uri.tryParse(payment.receiptUrl ?? '');
-                                    if (url != null && await canLaunchUrl(url)) {
-                                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF4A4499),
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  icon: const Icon(Icons.open_in_browser, size: 18),
-                                  label: const Text('فتح في المتصفح', style: TextStyle(fontFamily: 'ReadexPro')),
+                              ),
+                              errorWidget: (context, url, error) => Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.broken_image,
+                                        size: 64, color: Colors.white30),
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'تعذّر عرض الصورة داخل التطبيق',
+                                      style: TextStyle(
+                                          color: Colors.white54, fontSize: 14, fontFamily: 'ReadexPro'),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final url = Uri.tryParse(payment.receiptUrl ?? '');
+                                        if (url != null && await canLaunchUrl(url)) {
+                                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF4A4499),
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      icon: const Icon(Icons.open_in_browser, size: 18),
+                                      label: const Text('فتح في المتصفح', style: TextStyle(fontFamily: 'ReadexPro')),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            )
+                          : const Center(
+                              child: Text(
+                                'لا يوجد إيصال مرفق',
+                                style: TextStyle(color: Colors.white54, fontSize: 16),
+                              ),
                             ),
-                          ),
-                        )
-                      : const Center(
-                          child: Text(
-                            'لا يوجد إيصال مرفق',
-                            style: TextStyle(color: Colors.white54, fontSize: 16),
-                          ),
-                        ),
-                ),
+                    ),
+                  );
+                },
               ),
             ),
 
