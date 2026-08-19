@@ -17,31 +17,27 @@ class UserPaymentsGroup {
     required this.payments,
   });
 
-  /// aggregate status:
-  /// - 'under_review': if at least one payment is under_review or pending_review (customer app status).
-  /// - 'approved': if ALL payments are approved.
-  /// - 'rejected': if at least one payment is rejected and none are under_review.
-  /// - 'pending': otherwise.
   String get status {
-    if (payments.isEmpty) return 'pending';
+    if (payments.isEmpty) return 'active';
     if (payments.any((p) => p.status == 'under_review' || p.status == 'pending_review')) {
-      return 'under_review';
+      return 'review_required';
     }
-    if (payments.every((p) => p.status == 'approved' || p.status == 'paid')) {
-      return 'approved';
+    if (totalCount > 0 && paidCount == totalCount) {
+      return 'completed';
     }
     if (payments.any((p) => p.status == 'rejected')) {
       return 'rejected';
     }
-    return 'pending';
+    return 'active';
   }
 
   String get statusLabel {
     switch (status) {
-      case 'under_review': return 'قيد المراجعة';
-      case 'approved':     return 'مسددة بالكامل';
-      case 'rejected':     return 'مرفوضة';
-      default:             return 'مستحقة';
+      case 'review_required': return 'يحتاج مراجعة';
+      case 'completed':       return 'مسدد بالكامل';
+      case 'rejected':        return 'يوجد إيصال مرفوض';
+      case 'active':          return 'جاري السداد';
+      default:                return 'جاري السداد';
     }
   }
 
@@ -72,14 +68,14 @@ class UserPaymentsGroup {
 
   static List<UserPaymentsGroup> filterGrouped(List<UserPaymentsGroup> groups, String filter) {
     if (filter == 'الكل') return groups;
-    if (filter == 'قيد المراجعة') {
-      return groups.where((g) => g.payments.any((p) => p.status == 'under_review' || p.status == 'pending_review')).toList();
+    if (filter == 'يحتاج مراجعة') {
+      return groups.where((g) => g.status == 'review_required').toList();
     }
-    if (filter == 'مسددة') {
-      return groups.where((g) => g.payments.any((p) => p.status == 'approved' || p.status == 'paid')).toList();
+    if (filter == 'جاري السداد') {
+      return groups.where((g) => g.status == 'active' || g.status == 'rejected').toList();
     }
-    if (filter == 'مرفوضة') {
-      return groups.where((g) => g.payments.any((p) => p.status == 'rejected')).toList();
+    if (filter == 'مكتمل') {
+      return groups.where((g) => g.status == 'completed').toList();
     }
     return groups;
   }

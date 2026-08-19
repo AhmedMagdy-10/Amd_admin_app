@@ -26,7 +26,7 @@ class _PaymentsContent extends StatefulWidget {
 }
 
 class _PaymentsContentState extends State<_PaymentsContent> {
-  static const _filters = ['الكل', 'قيد المراجعة', 'مسددة', 'مرفوضة'];
+  static const _filters = ['الكل', 'يحتاج مراجعة', 'جاري السداد', 'مكتمل'];
   String _searchQuery = '';
 
   @override
@@ -97,21 +97,21 @@ class _PaymentsContentState extends State<_PaymentsContent> {
                             Row(
                               children: [
                                 _SummaryCard(
-                                  label: 'مسددة',
+                                  label: 'أقساط مسددة',
                                   value: '$approved',
                                   icon: Icons.check_circle_rounded,
                                   color: const Color(0xFF2ECA7D),
                                 ),
                                 const SizedBox(width: 10),
                                 _SummaryCard(
-                                  label: 'قيد المراجعة',
+                                  label: 'أقساط للمراجعة',
                                   value: '$underReview',
                                   icon: Icons.hourglass_top_rounded,
                                   color: const Color(0xFFFF9800),
                                 ),
                                 const SizedBox(width: 10),
                                 _SummaryCard(
-                                  label: 'مرفوضة',
+                                  label: 'أقساط مرفوضة',
                                   value: '$rejected',
                                   icon: Icons.cancel_rounded,
                                   color: const Color(0xFFE94B4B),
