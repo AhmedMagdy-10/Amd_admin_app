@@ -8,6 +8,7 @@ import '../logic/chat_cubit.dart';
 import '../data/chat_message.dart';
 import 'widgets/full_screen_image_viewer.dart';
 import '../../../core/services/firebase_messaging_service.dart';
+import 'package:file_picker/file_picker.dart' as fp;
 
 import '../data/chat_client.dart';
 
@@ -50,6 +51,30 @@ class _ChatContentState extends State<_ChatContent> {
         clientId: widget.client.id,
         messagePreview: 'صورة مرفقة',
       );
+    }
+  }
+
+  Future<void> _pickDocument() async {
+    try {
+      fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
+        type: fp.FileType.any,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        if (!mounted) return;
+        File file = File(result.files.single.path!);
+        String fileName = result.files.single.name;
+        
+        context.read<ChatCubit>().sendDocumentMessage(file, fileName);
+
+        // Notify client
+        _fcmService.sendChatMessageNotification(
+          clientId: widget.client.id,
+          messagePreview: 'ملف مرفق: $fileName',
+        );
+      }
+    } catch (e) {
+      showToast(text: 'فشل اختيار الملف', state: ToastStates.error);
     }
   }
 
@@ -160,7 +185,7 @@ class _ChatContentState extends State<_ChatContent> {
                       label: "مستند",
                       onTap: () {
                         Navigator.pop(context);
-                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
+                        _pickDocument();
                       },
                     ),
                   ],

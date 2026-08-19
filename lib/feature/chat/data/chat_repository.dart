@@ -86,4 +86,18 @@ class ChatRepository {
       return null;
     }
   }
+
+  /// Upload document to Firebase Storage and return the URL
+  Future<String?> uploadDocumentToFirebase(File file) async {
+    try {
+      final fileName = file.path.split('/').last;
+      final ref = FirebaseStorage.instance.ref().child('chat_documents/${DateTime.now().millisecondsSinceEpoch}_$fileName');
+      final uploadTask = ref.putFile(file);
+      final snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      print('Firebase Storage document upload error: $e');
+      return null;
+    }
+  }
 }

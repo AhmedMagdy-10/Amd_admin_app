@@ -80,4 +80,30 @@ class ChatCubit extends Cubit<ChatState> {
       }
     }
   }
+
+  Future<void> sendDocumentMessage(File documentFile, String fileName) async {
+    if (state is ChatLoaded) {
+      final currentState = state as ChatLoaded;
+      emit(ChatLoaded(currentState.messages, isUploadingImage: true));
+    }
+
+    try {
+      final documentUrl = await _repository.uploadDocumentToFirebase(documentFile);
+      if (documentUrl != null) {
+        await _repository.sendMessage(
+          clientId: clientId,
+          text: 'مرفق: $fileName\n$documentUrl',
+        );
+      } else {
+        if (!isClosed) emit(ChatError("فشل رفع الملف."));
+      }
+    } catch (e) {
+      if (!isClosed) emit(ChatError("حدث خطأ أثناء إرسال الملف"));
+    } finally {
+      if (!isClosed && state is ChatLoaded) {
+        final currentState = state as ChatLoaded;
+        emit(ChatLoaded(currentState.messages, isUploadingImage: false));
+      }
+    }
+  }
 }
