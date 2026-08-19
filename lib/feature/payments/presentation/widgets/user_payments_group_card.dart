@@ -18,13 +18,13 @@ class UserPaymentsGroup {
   });
 
   /// aggregate status:
-  /// - 'under_review': if at least one payment is under_review.
+  /// - 'under_review': if at least one payment is under_review or pending_review (customer app status).
   /// - 'approved': if ALL payments are approved.
   /// - 'rejected': if at least one payment is rejected and none are under_review.
   /// - 'pending': otherwise.
   String get status {
     if (payments.isEmpty) return 'pending';
-    if (payments.any((p) => p.status == 'under_review')) {
+    if (payments.any((p) => p.status == 'under_review' || p.status == 'pending_review')) {
       return 'under_review';
     }
     if (payments.every((p) => p.status == 'approved')) {

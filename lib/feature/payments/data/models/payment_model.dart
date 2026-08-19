@@ -67,8 +67,9 @@ class PaymentModel {
 
   String get statusLabel {
     switch (status) {
-      case 'pending':      
+      case 'pending':
       case 'pending_payment': return 'مستحقة';
+      case 'pending_review':
       case 'under_review': return 'قيد المراجعة';
       case 'approved':     return 'مسددة';
       case 'rejected':     return 'مرفوضة';

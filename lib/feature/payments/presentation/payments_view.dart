@@ -26,7 +26,7 @@ class _PaymentsContent extends StatefulWidget {
 }
 
 class _PaymentsContentState extends State<_PaymentsContent> {
-  static const _filters = ['الكل', 'مسددة', 'مرفوضة'];
+  static const _filters = ['الكل', 'قيد المراجعة', 'مسددة', 'مرفوضة'];
   String _searchQuery = '';
 
   @override
@@ -63,6 +63,9 @@ class _PaymentsContentState extends State<_PaymentsContent> {
                       final groups = UserPaymentsGroup.groupPayments(
                         state.allPayments,
                       );
+                      final underReview = groups
+                          .where((g) => g.status == 'under_review')
+                          .length;
                       final rejected = groups
                           .where((g) => g.status == 'rejected')
                           .length;
@@ -100,6 +103,13 @@ class _PaymentsContentState extends State<_PaymentsContent> {
                                   value: '$approved',
                                   icon: Icons.check_circle_rounded,
                                   color: const Color(0xFF2ECA7D),
+                                ),
+                                const SizedBox(width: 10),
+                                _SummaryCard(
+                                  label: 'قيد المراجعة',
+                                  value: '$underReview',
+                                  icon: Icons.hourglass_top_rounded,
+                                  color: const Color(0xFFFF9800),
                                 ),
                                 const SizedBox(width: 10),
                                 _SummaryCard(

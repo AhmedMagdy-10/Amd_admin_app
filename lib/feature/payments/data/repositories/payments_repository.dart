@@ -39,11 +39,16 @@ class PaymentsRepository {
         if (userName.isEmpty) {
           final reqDoc = await requestRef.get();
           if (reqDoc.exists) {
-            final eligibility =
-                reqDoc.data()?['eligibilityData'] as Map<String, dynamic>?;
-            final fName = eligibility?['firstName']?.toString().trim() ?? '';
-            final lName = eligibility?['lastName']?.toString().trim() ?? '';
+            final data = reqDoc.data() ?? {};
+            // Try eligibilityData sub-map (old format)
+            final eligibility = data['eligibilityData'] as Map<String, dynamic>?;
+            final fName = (eligibility?['firstName'] ?? data['firstName'] ?? data['first_name'] ?? '').toString().trim();
+            final lName = (eligibility?['lastName'] ?? data['lastName'] ?? data['last_name'] ?? '').toString().trim();
             userName = '$fName $lName'.trim();
+            // Fallbacks for direct name fields (new customer app format)
+            if (userName.isEmpty) {
+              userName = (data['name'] ?? data['fullName'] ?? data['clientName'] ?? '').toString().trim();
+            }
             if (userName.isEmpty) userName = 'بدون اسم';
           } else {
             userName = 'مستخدم غير معروف';
@@ -53,8 +58,11 @@ class PaymentsRepository {
 
         final payment = PaymentModel.fromFirestore(doc.reference, doc.data(), userName);
         
-        // Only display payments that have an uploaded receipt (needs admin approval, or already approved/rejected)
-        if (payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty) {
+        // Show payments that have an uploaded receipt OR are pending_review (customer app)
+        // status: pending_review always means a receipt was uploaded waiting for admin
+        final hasReceipt = payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty;
+        final isPendingReview = payment.status == 'pending_review';
+        if (hasReceipt || isPendingReview) {
           list.add(payment);
         }
       }
