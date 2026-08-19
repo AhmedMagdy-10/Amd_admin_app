@@ -41,24 +41,45 @@ class ClientsCubit extends Cubit<ClientsState> {
 
   Future<void> _buildClientsList() async {
     try {
-      // Listen to chats collection for live updates
-      _clientsSub =
-          _firestore.collection('chats').snapshots().listen((snapshot) async {
+      // ─── KEY FIX ──────────────────────────────────────────────────────────────
+      // The chats/{userId} document is a "phantom document" — Firestore creates
+      // the path automatically when messages are written to the sub-collection but
+      // the parent document itself has NO fields and therefore does NOT appear in
+      // collection('chats').snapshots(). That's why the list was always empty.
+      //
+      // Solution: use collectionGroup('messages') to scan ALL messages sub-collections
+      // across all conversations, extract the unique parent doc IDs (= userId), and
+      // build the client list from those IDs.
+      // ──────────────────────────────────────────────────────────────────────────
+
+      _clientsSub = _firestore
+          .collectionGroup('messages')
+          .snapshots()
+          .listen((snapshot) async {
         if (isClosed) return;
+
+        // Collect unique conversation IDs (parent doc of each message = userId)
+        final Set<String> seenIds = {};
+        for (final doc in snapshot.docs) {
+          // doc.reference.parent = 'messages' collection
+          // doc.reference.parent.parent = 'chats/{userId}' document
+          final chatDocRef = doc.reference.parent.parent;
+          if (chatDocRef != null) {
+            seenIds.add(chatDocRef.id);
+          }
+        }
 
         final List<ChatClient> clientsList = [];
 
-        for (final doc in snapshot.docs) {
-          final clientId = doc.id;
+        for (final clientId in seenIds) {
           String name = clientId; // Default fallback = the ID itself
 
-          // Try to get the real name from users/{clientId}
+          // 1. Try users/{clientId}
           try {
             final userDoc =
                 await _firestore.collection('users').doc(clientId).get();
             if (userDoc.exists) {
               final data = userDoc.data()!;
-              // Try every possible name field combination
               final firstName = (data['firstName'] ??
                       data['first_name'] ??
                       data['fname'] ??
@@ -87,7 +108,7 @@ class ClientsCubit extends Cubit<ClientsState> {
             }
           } catch (_) {}
 
-          // If still no name found, try FinancingRequests collection
+          // 2. If still just the raw ID, try FinancingRequests collection
           if (name == clientId) {
             try {
               final reqSnap = await _firestore
@@ -97,18 +118,20 @@ class ClientsCubit extends Cubit<ClientsState> {
                   .get();
               if (reqSnap.docs.isNotEmpty) {
                 final data = reqSnap.docs.first.data();
+                final eligibility =
+                    data['eligibilityData'] as Map<String, dynamic>?;
                 final firstName =
-                    (data['firstName'] ?? data['first_name'] ?? '')
+                    (eligibility?['firstName'] ?? data['firstName'] ?? data['first_name'] ?? '')
                         .toString()
                         .trim();
                 final lastName =
-                    (data['lastName'] ?? data['last_name'] ?? '')
+                    (eligibility?['lastName'] ?? data['lastName'] ?? data['last_name'] ?? '')
                         .toString()
                         .trim();
                 if (firstName.isNotEmpty || lastName.isNotEmpty) {
                   name = '$firstName $lastName'.trim();
                 } else {
-                  final sn = (data['name'] ?? data['fullName'] ?? '')
+                  final sn = (data['name'] ?? data['fullName'] ?? data['clientName'] ?? '')
                       .toString()
                       .trim();
                   if (sn.isNotEmpty) name = sn;
