@@ -166,8 +166,11 @@ class _ChatsListContent extends StatelessWidget {
                                     if (dt.day == now.day &&
                                         dt.month == now.month &&
                                         dt.year == now.year) {
-                                      timeText =
-                                          "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+                                      final hour = dt.hour;
+                                      final minute = dt.minute.toString().padLeft(2, '0');
+                                      final period = hour >= 12 ? 'PM' : 'AM';
+                                      final hour12 = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+                                      timeText = "$hour12:$minute $period";
                                     } else {
                                       timeText =
                                           "${dt.year}/${dt.month}/${dt.day}";
