@@ -175,15 +175,11 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // isMe = true when the message was sent by the currently logged-in admin.
-    // We check the real Firebase UID first, then fall back to the legacy
-    // hardcoded 'ADMIN-001' value for older messages written before auth was wired up.
     final adminUid = FirebaseAuth.instance.currentUser?.uid ?? '';
     final isMe = adminUid.isNotEmpty
         ? message.senderId == adminUid
         : message.senderId == 'ADMIN-001';
     
-    // Format timestamp manually to avoid locale initialization error
     String timeFormat = '';
     if (message.timestamp != null) {
       final hour = message.timestamp!.hour;
@@ -196,7 +192,7 @@ class _ChatBubble extends StatelessWidget {
     return Align(
       alignment: isMe ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
@@ -205,68 +201,86 @@ class _ChatBubble extends StatelessWidget {
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
-            bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-            bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+            bottomLeft: isMe ? const Radius.circular(4) : const Radius.circular(16),
+            bottomRight: isMe ? const Radius.circular(16) : const Radius.circular(4),
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (message.imageUrl != null)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => FullScreenImageViewer(imageUrl: message.imageUrl!),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        message.imageUrl!,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(child: CircularProgressIndicator());
-                        },
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: 10,
+                bottom: 24, // Space for the timestamp
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (message.imageUrl != null)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FullScreenImageViewer(imageUrl: message.imageUrl!),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: (message.text.isNotEmpty && message.text != 'صورة مرفقة') ? 8.0 : 0.0,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            message.imageUrl!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                height: 150,
+                                width: 150,
+                                color: Colors.grey.shade200,
+                                child: const Center(child: CircularProgressIndicator()),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              if (message.text.isNotEmpty && message.text != 'صورة مرفقة')
-                Text(
-                  message.text,
-                  style: TextStyle(
-                    color: isMe ? Colors.white : Colors.black87,
-                    fontSize: 15,
-                  ),
-                ),
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Text(
-                  timeFormat,
-                  style: TextStyle(
-                    color: isMe ? Colors.white70 : Colors.black54,
-                    fontSize: 10,
-                  ),
+                  if (message.text.isNotEmpty && message.text != 'صورة مرفقة')
+                    Text(
+                      message.text,
+                      style: TextStyle(
+                        color: isMe ? Colors.white : Colors.black87,
+                        fontSize: 15,
+                        height: 1.3,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 4,
+              left: 12,
+              child: Text(
+                timeFormat,
+                style: TextStyle(
+                  color: isMe ? Colors.white70 : Colors.black54,
+                  fontSize: 11,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

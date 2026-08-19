@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
 class FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
 
   const FullScreenImageViewer({super.key, required this.imageUrl});
+
+  Future<void> _downloadImage(BuildContext context) async {
+    final Uri url = Uri.parse(imageUrl);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تعذر فتح الرابط لتحميل الصورة')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +26,13 @@ class FullScreenImageViewer extends StatelessWidget {
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () => _downloadImage(context),
+            tooltip: 'تحميل الصورة',
+          ),
+        ],
       ),
       body: Center(
         child: InteractiveViewer(

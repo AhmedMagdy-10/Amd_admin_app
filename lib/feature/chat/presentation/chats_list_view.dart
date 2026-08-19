@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../logic/clients_cubit.dart';
 import 'chat_details_view.dart';
 
@@ -156,16 +157,20 @@ class _ChatsListContent extends StatelessWidget {
                                     }
                                   }
                                   
-                                  // Simplified unread check (if sender is not admin and isRead is false)
+                                  // Simplified unread check (if sender is not me and isRead is false)
+                                  final adminUid = FirebaseAuth.instance.currentUser?.uid ?? '';
                                   final senderId = lastMsgData['senderId'] ?? '';
                                   final isRead = lastMsgData['isRead'] ?? true;
-                                  if (senderId != 'admin' && !isRead) {
+                                  
+                                  final isMe = adminUid.isNotEmpty ? senderId == adminUid : senderId == 'ADMIN-001';
+                                  if (!isMe && !isRead) {
                                     isUnread = true;
                                   }
                                 }
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -173,11 +178,11 @@ class _ChatsListContent extends StatelessWidget {
                                         Expanded(
                                           child: Text(
                                             client.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
+                                            style: TextStyle(
+                                              fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
                                               fontSize: 16,
                                               fontFamily: 'ReadexPro',
-                                              color: Color(0xFF222222),
+                                              color: const Color(0xFF111111),
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -195,9 +200,13 @@ class _ChatsListContent extends StatelessWidget {
                                           ),
                                       ],
                                     ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 4),
                                     Row(
                                       children: [
+                                        if (isMe) ...[
+                                          Icon(Icons.done_all, size: 16, color: Colors.blue.shade300),
+                                          const SizedBox(width: 4),
+                                        ],
                                         Expanded(
                                           child: Text(
                                             text,
@@ -214,11 +223,14 @@ class _ChatsListContent extends StatelessWidget {
                                         if (isUnread)
                                           Container(
                                             margin: const EdgeInsets.only(right: 8),
-                                            width: 10,
-                                            height: 10,
+                                            padding: const EdgeInsets.all(6),
                                             decoration: const BoxDecoration(
                                               color: Color(0xFF4A4499),
                                               shape: BoxShape.circle,
+                                            ),
+                                            child: const Text(
+                                              '1', // Usually dynamic, using '1' as a placeholder for visual WhatsApp style
+                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                       ],
