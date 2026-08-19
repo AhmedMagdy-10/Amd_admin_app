@@ -347,7 +347,7 @@ class _ChatBubble extends StatelessWidget {
     if (message.timestamp != null) {
       final hour = message.timestamp!.hour;
       final minute = message.timestamp!.minute.toString().padLeft(2, '0');
-      final period = hour >= 12 ? 'PM' : 'AM';
+      final period = hour >= 12 ? 'م' : 'ص';
       final hour12 = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       timeFormat = '$hour12:$minute $period';
     }
@@ -357,6 +357,7 @@ class _ChatBubble extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         constraints: BoxConstraints(
+          minWidth: 85,
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
@@ -438,11 +439,14 @@ class _ChatBubble extends StatelessWidget {
             Positioned(
               bottom: 4,
               left: 12,
-              child: Text(
-                timeFormat,
-                style: TextStyle(
-                  color: isMe ? Colors.white70 : Colors.black54,
-                  fontSize: 11,
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(
+                  timeFormat,
+                  style: TextStyle(
+                    color: isMe ? Colors.white70 : Colors.black54,
+                    fontSize: 11,
+                  ),
                 ),
               ),
             ),
