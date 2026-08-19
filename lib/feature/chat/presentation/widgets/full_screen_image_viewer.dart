@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:gal/gal.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:typed_data';
-import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 
 class FullScreenImageViewer extends StatelessWidget {
@@ -13,31 +13,25 @@ class FullScreenImageViewer extends StatelessWidget {
 
   Future<void> _downloadImage(BuildContext context) async {
     try {
-      if (Platform.isAndroid) {
-        var status = await Permission.storage.status;
-        if (!status.isGranted) {
-          await Permission.storage.request();
-        }
-        var photosStatus = await Permission.photos.status;
-        if (!photosStatus.isGranted) {
-          await Permission.photos.request();
-        }
-      }
-
       if (context.mounted) {
         Fluttertoast.showToast(msg: "جاري تحميل الصورة...");
       }
       var response = await http.get(Uri.parse(imageUrl));
-      final result = await ImageGallerySaver.saveImage(
-        Uint8List.fromList(response.bodyBytes),
-        quality: 100,
-        name: "chat_image_${DateTime.now().millisecondsSinceEpoch}"
-      );
-      if (result['isSuccess'] == true) {
-        Fluttertoast.showToast(msg: "تم حفظ الصورة في المعرض");
-      } else {
-        Fluttertoast.showToast(msg: "فشل حفظ الصورة: ${result['errorMessage'] ?? 'Unknown error'}");
+      
+      // Request permission using gal
+      if (!await Gal.hasAccess()) {
+        await Gal.requestAccess();
       }
+
+      // Save to temp file
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/chat_image_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(response.bodyBytes);
+
+      // Save to gallery
+      await Gal.putImage(tempFile.path);
+      
+      Fluttertoast.showToast(msg: "تم حفظ الصورة في المعرض بنجاح");
     } catch (e) {
       Fluttertoast.showToast(msg: "حدث خطأ: $e");
     }

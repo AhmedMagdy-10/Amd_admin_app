@@ -50,9 +50,9 @@ dependencies:
   intl: ^0.20.3
   url_launcher: ^6.3.2
   firebase_auth: ^6.5.7
-  image_gallery_saver: ^2.0.3
-  permission_handler: ^13.0.1
   file_picker: ^8.0.0
+  gal: ^2.3.3
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
