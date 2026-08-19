@@ -142,7 +142,7 @@ class RequestItemCard extends StatelessWidget {
                   textColor = const Color(0xFF2ECA7D);
                   pillBgColor = const Color(0xFFE8FAF0);
                   statusArabic = 'مقبول';
-                } else if (status == 'not approved' || status == 'مرفوض') {
+                } else if (status == 'not approved' || status == 'مرفوض' || status == 'rejected') {
                   dotColor = const Color(0xFFF44336);
                   textColor = const Color(0xFFF44336);
                   pillBgColor = const Color(0xFFFEECEB);

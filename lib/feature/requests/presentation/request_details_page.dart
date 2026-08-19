@@ -360,7 +360,7 @@ class RequestDetailsPage extends StatelessWidget {
       statusBgColor = const Color(0xFFE8FAF0);
       statusTextColor = const Color(0xFF2ECA7D);
       statusArabic = 'مقبول';
-    } else if (status == 'not approved' || status == 'مرفوض') {
+    } else if (status == 'not approved' || status == 'مرفوض' || status == 'rejected') {
       statusBgColor = const Color(0xFFFEECEB);
       statusTextColor = const Color(0xFFF44336);
       statusArabic = 'مرفوض';
@@ -673,7 +673,7 @@ class RequestDetailsPage extends StatelessWidget {
     final status = model.status.trim();
     // Only fully "done" when status is exactly 'approved' or its Arabic equivalent
     final isFullyApproved = status == 'approved' || status == 'مكتملة' || status == 'مكتمل' || status == 'transfer_approved';
-    final isRejected = status == 'not approved' || status == 'مرفوض';
+    final isRejected = status == 'not approved' || status == 'مرفوض' || status == 'rejected';
     final canAccept = _isDataUploadedForStep(model);
 
     return Container(

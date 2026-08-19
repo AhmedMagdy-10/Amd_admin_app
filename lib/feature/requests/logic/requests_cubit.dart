@@ -106,11 +106,11 @@ class RequestsCubit extends Cubit<RequestsState> {
     }
   }
 
-  /// Rejects a request: sets status to `not approved`.
+  /// Rejects a request: sets status to `rejected`.
   Future<void> rejectRequest(RequestModel model) async {
     try {
       await _repository.updateStatus(model.id, model.collection, {
-        'status': 'not approved',
+        'status': 'rejected',
       });
     } catch (e) {
       emit(RequestsError(e.toString()));

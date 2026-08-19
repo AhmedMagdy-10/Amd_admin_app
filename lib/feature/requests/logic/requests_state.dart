@@ -14,7 +14,7 @@ class RequestsLoaded extends RequestsState {
 
   bool _isRejected(RequestModel r) {
     final status = r.status.trim();
-    return status == 'not approved' || status == 'مرفوض';
+    return status == 'not approved' || status == 'مرفوض' || status == 'rejected';
   }
 
   bool _isCompleted(RequestModel r) {

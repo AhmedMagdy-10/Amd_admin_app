@@ -10,6 +10,7 @@ import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 /// Full-screen receipt viewer shown when admin taps "عرض الإيصال".
 class ReceiptViewerSheet extends StatelessWidget {
   final PaymentModel payment;
@@ -21,7 +22,7 @@ class ReceiptViewerSheet extends StatelessWidget {
         showToast(text: "جاري تحميل الإيصال...", state: ToastStates.success);
       }
       var response = await http.get(Uri.parse(url));
-      
+
       // Request permission using gal
       if (!await Gal.hasAccess()) {
         await Gal.requestAccess();
@@ -29,14 +30,19 @@ class ReceiptViewerSheet extends StatelessWidget {
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/receipt_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final tempFile = File(
+        '${tempDir.path}/receipt_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       await tempFile.writeAsBytes(response.bodyBytes);
 
       // Save to gallery
       await Gal.putImage(tempFile.path);
-      
+
       if (context.mounted) {
-        showToast(text: "تم حفظ الإيصال في المعرض بنجاح", state: ToastStates.success);
+        showToast(
+          text: "تم حفظ الإيصال في المعرض بنجاح",
+          state: ToastStates.success,
+        );
       }
     } catch (e) {
       if (context.mounted) {
@@ -53,51 +59,63 @@ class ReceiptViewerSheet extends StatelessWidget {
         backgroundColor: const Color(0xFF0D0D1A),
         body: Column(
           children: [
-            SizedBox(height: MediaQuery.of(context).padding.top > 24 ? MediaQuery.of(context).padding.top : 36.0), // Padding to avoid status bar
+            SizedBox(
+              height: MediaQuery.of(context).padding.top > 24
+                  ? MediaQuery.of(context).padding.top
+                  : 36.0,
+            ), // Padding to avoid status bar
             AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
               centerTitle: true,
-                title: Text(
-                  'إيصال الدفعة ${payment.paymentNumber}',
-                  style: const TextStyle(
-              fontFamily: 'ReadexPro',
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: [
-            if (payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.download, color: Colors.white),
-                onPressed: () => _downloadReceipt(context, payment.receiptUrl!),
-                tooltip: 'تحميل الإيصال',
+              title: Text(
+                'إيصال الدفعة ${payment.paymentNumber}',
+                style: const TextStyle(
+                  fontFamily: 'ReadexPro',
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
               ),
-          ],
-        ),
-        // ── Image ──────────────────────────────────────────────────────────
+              leading: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              actions: [
+                if (payment.receiptUrl != null &&
+                    payment.receiptUrl!.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.download, color: Colors.white),
+                    onPressed: () =>
+                        _downloadReceipt(context, payment.receiptUrl!),
+                    tooltip: 'تحميل الإيصال',
+                  ),
+              ],
+            ),
+            // ── Image ──────────────────────────────────────────────────────────
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return InteractiveViewer(
                     panEnabled: true,
                     scaleEnabled: true,
-                    constrained: false, // allow child to be taller than viewport
+                    constrained:
+                        false, // allow child to be taller than viewport
                     child: Container(
                       width: constraints.maxWidth,
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight,
                       ),
                       alignment: Alignment.center,
-                      child: payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty
+                      child:
+                          payment.receiptUrl != null &&
+                              payment.receiptUrl!.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: payment.receiptUrl!,
-                              width: constraints.maxWidth - 32, // 16px padding on both sides
+                              // 16px padding on top and bottom
+                              width:
+                                  constraints.maxWidth -
+                                  32, // 16px padding on both sides
                               fit: BoxFit.fitWidth,
                               placeholder: (context, url) => const Center(
                                 child: CircularProgressIndicator(
@@ -108,28 +126,51 @@ class ReceiptViewerSheet extends StatelessWidget {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.broken_image,
-                                        size: 64, color: Colors.white30),
+                                    const Icon(
+                                      Icons.broken_image,
+                                      size: 64,
+                                      color: Colors.white30,
+                                    ),
                                     const SizedBox(height: 12),
                                     const Text(
                                       'تعذّر عرض الصورة داخل التطبيق',
                                       style: TextStyle(
-                                          color: Colors.white54, fontSize: 14, fontFamily: 'ReadexPro'),
+                                        color: Colors.white54,
+                                        fontSize: 14,
+                                        fontFamily: 'ReadexPro',
+                                      ),
                                     ),
                                     const SizedBox(height: 16),
                                     ElevatedButton.icon(
                                       onPressed: () async {
-                                        final url = Uri.tryParse(payment.receiptUrl ?? '');
-                                        if (url != null && await canLaunchUrl(url)) {
-                                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                                        final url = Uri.tryParse(
+                                          payment.receiptUrl ?? '',
+                                        );
+                                        if (url != null &&
+                                            await canLaunchUrl(url)) {
+                                          await launchUrl(
+                                            url,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF4A4499),
+                                        backgroundColor: const Color(
+                                          0xFF4A4499,
+                                        ),
                                         foregroundColor: Colors.white,
                                       ),
-                                      icon: const Icon(Icons.open_in_browser, size: 18),
-                                      label: const Text('فتح في المتصفح', style: TextStyle(fontFamily: 'ReadexPro')),
+                                      icon: const Icon(
+                                        Icons.open_in_browser,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'فتح في المتصفح',
+                                        style: TextStyle(
+                                          fontFamily: 'ReadexPro',
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -138,7 +179,10 @@ class ReceiptViewerSheet extends StatelessWidget {
                           : const Center(
                               child: Text(
                                 'لا يوجد إيصال مرفق',
-                                style: TextStyle(color: Colors.white54, fontSize: 16),
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
                     ),
@@ -150,13 +194,15 @@ class ReceiptViewerSheet extends StatelessWidget {
             // ── Payment Info Strip ─────────────────────────────────────────────
             Container(
               color: const Color(0xFF1A1A2E),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _infoItem('العميل',    payment.userName),
-                  _infoItem('المبلغ',    'ر.س ${payment.amount.toStringAsFixed(0)}'),
+                  _infoItem('العميل', payment.userName),
+                  _infoItem(
+                    'المبلغ',
+                    'ر.س ${payment.amount.toStringAsFixed(0)}',
+                  ),
                   _infoItem('رقم الدفعة', '#${payment.paymentNumber}'),
                 ],
               ),
@@ -169,97 +215,121 @@ class ReceiptViewerSheet extends StatelessWidget {
                   bool isLoading = false;
                   return StatefulBuilder(
                     builder: (context, setState) {
-                  return Container(
-                    color: const Color(0xFF1A1A2E),
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    child: isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF2ECA7D),
-                            ),
-                          )
-                        : Row(
-                            children: [
-                              // Reject
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () async {
-                                    setState(() => isLoading = true);
-                                    await context
-                                        .read<PaymentsCubit>()
-                                        .rejectPayment(payment);
-                                    if (context.mounted) {
-                                      _showSnackBar(context, 'تم رفض الدفعة بنجاح', false);
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFFFF6B6B),
-                                    side: const BorderSide(
-                                        color: Color(0xFFFF6B6B), width: 1.5),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                  ),
-                                  icon: const Icon(Icons.close_rounded,
-                                      size: 18),
-                                  label: const Text(
-                                    'رفض',
-                                    style: TextStyle(
-                                      fontFamily: 'ReadexPro',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
+                      return Container(
+                        color: const Color(0xFF1A1A2E),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                        child: isLoading
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF2ECA7D),
+                                ),
+                              )
+                            : Row(
+                                children: [
+                                  // Reject
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        setState(() => isLoading = true);
+                                        await context
+                                            .read<PaymentsCubit>()
+                                            .rejectPayment(payment);
+                                        if (context.mounted) {
+                                          _showSnackBar(
+                                            context,
+                                            'تم رفض الدفعة بنجاح',
+                                            false,
+                                          );
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: const Color(
+                                          0xFFFF6B6B,
+                                        ),
+                                        side: const BorderSide(
+                                          color: Color(0xFFFF6B6B),
+                                          width: 1.5,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.close_rounded,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'رفض',
+                                        style: TextStyle(
+                                          fontFamily: 'ReadexPro',
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              // Approve
-                              Expanded(
-                                flex: 2,
-                                child: ElevatedButton.icon(
-                                  onPressed: () async {
-                                    setState(() => isLoading = true);
-                                    await context
-                                        .read<PaymentsCubit>()
-                                        .approvePayment(payment);
-                                    if (context.mounted) {
-                                      _showSnackBar(context, 'تم اعتماد الدفعة بنجاح', true);
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF2ECA7D),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                    elevation: 0,
-                                  ),
-                                  icon: const Icon(Icons.check_circle_outline,
-                                      size: 18),
-                                  label: Text(
-                                    payment.receiptUrl != null
-                                        ? 'اعتماد الإيصال'
-                                        : 'اعتماد الدفعة يدوياً',
-                                    style: const TextStyle(
-                                      fontFamily: 'ReadexPro',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
+                                  const SizedBox(width: 12),
+                                  // Approve
+                                  Expanded(
+                                    flex: 2,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () async {
+                                        setState(() => isLoading = true);
+                                        await context
+                                            .read<PaymentsCubit>()
+                                            .approvePayment(payment);
+                                        if (context.mounted) {
+                                          _showSnackBar(
+                                            context,
+                                            'تم اعتماد الدفعة بنجاح',
+                                            true,
+                                          );
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFF2ECA7D,
+                                        ),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.check_circle_outline,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        payment.receiptUrl != null
+                                            ? 'اعتماد الإيصال'
+                                            : 'اعتماد الدفعة يدوياً',
+                                        style: const TextStyle(
+                                          fontFamily: 'ReadexPro',
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 15,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
+                      );
+                    },
                   );
                 },
-              );
-              },
               ),
 
             if (payment.status == 'approved')
@@ -273,13 +343,18 @@ class ReceiptViewerSheet extends StatelessWidget {
                     color: const Color(0xFF2ECA7D).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: const Color(0xFF2ECA7D), width: 1.5),
+                      color: const Color(0xFF2ECA7D),
+                      width: 1.5,
+                    ),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.verified_rounded,
-                          color: Color(0xFF2ECA7D), size: 20),
+                      Icon(
+                        Icons.verified_rounded,
+                        color: Color(0xFF2ECA7D),
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'تم اعتماد هذا الإيصال',
@@ -304,16 +379,24 @@ class ReceiptViewerSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(
-                color: Colors.white38, fontSize: 11, fontFamily: 'ReadexPro')),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white38,
+            fontSize: 11,
+            fontFamily: 'ReadexPro',
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'ReadexPro')),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'ReadexPro',
+          ),
+        ),
       ],
     );
   }
