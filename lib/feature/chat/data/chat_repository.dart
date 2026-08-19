@@ -61,18 +61,28 @@ class ChatRepository {
     });
   }
 
-  /// Upload image to Firebase Storage and return the URL
-  Future<String?> uploadImageToFirebase(File imageFile) async {
+  /// Upload image to Imgbb and return the URL
+  Future<String?> uploadImageToImgbb(File imageFile) async {
     try {
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final storageRef = FirebaseStorage.instance.ref().child('chat_images').child('$fileName.jpg');
+      final apiKey = '0bfdb6d0e96fbf92e1bfe5bf83e34544';
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.imgbb.com/1/upload?key=$apiKey'),
+      );
       
-      final uploadTask = await storageRef.putFile(imageFile);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
       
-      return downloadUrl;
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final json = jsonDecode(responseData);
+        return json['data']['url'];
+      } else {
+        print('Imgbb upload failed with status: ${response.statusCode}');
+        return null;
+      }
     } catch (e) {
-      print('Firebase Storage upload failed: $e');
+      print('Imgbb upload error: $e');
       return null;
     }
   }
