@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'fcm_api_service.dart';
 
 // Top-level background message handler
@@ -61,8 +62,8 @@ class FirebaseMessagingService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
 
-    // 3. Register Token in Firestore
-    await _registerToken();
+    // 5. Register Admin FCM Token
+    await registerToken();
 
     // 4. Setup Listeners
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -100,7 +101,7 @@ class FirebaseMessagingService {
   }
 
   /// Registers Admin's FCM token in firestore admins collection.
-  Future<void> _registerToken() async {
+  Future<void> registerToken() async {
     try {
       final token = await _fcm.getToken();
       if (token == null) {
@@ -109,11 +110,17 @@ class FirebaseMessagingService {
       }
       print('FCM Admin Token: $token');
 
-      await FirebaseFirestore.instance.collection('admins').doc('ADMIN-001').set({
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('FCM: No admin logged in. Cannot save token.');
+        return;
+      }
+
+      await FirebaseFirestore.instance.collection('admins').doc(user.uid).set({
         'fcmToken': token,
         'tokenUpdatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      print('FCM: Saved token to admin document ADMIN-001.');
+      print('FCM: Saved token to admin document ${user.uid}.');
     } catch (e) {
       print('FCM: Error registering token: $e');
     }

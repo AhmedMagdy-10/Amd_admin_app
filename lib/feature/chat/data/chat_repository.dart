@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 import 'chat_message.dart';
@@ -55,7 +56,7 @@ class ChatRepository {
         .add({
       'text': text,
       'imageUrl': imageUrl, // null when not an image
-      'senderId': 'ADMIN-001', // Hardcoded until Auth is implemented
+      'senderId': FirebaseAuth.instance.currentUser?.uid ?? 'ADMIN-001',
       'timestamp': FieldValue.serverTimestamp(),
     });
   }

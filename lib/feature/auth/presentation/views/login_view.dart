@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../home/home_page.dart';
+import '../../../../core/services/firebase_messaging_service.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -58,6 +59,11 @@ class _LoginViewState extends State<LoginView> with SingleTickerProviderStateMix
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+      if (!mounted) return;
+      
+      // Also register FCM token dynamically after login
+      await FirebaseMessagingService().registerToken();
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,

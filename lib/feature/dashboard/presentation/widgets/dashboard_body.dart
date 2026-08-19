@@ -22,10 +22,8 @@ class DashboardBody extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Stack to hold the scrolling blue header and the top cards
             Stack(
               children: [
-                // Blue Background that scrolls with the content
                 Container(
                   height: 250,
                   decoration: const BoxDecoration(
@@ -58,11 +56,10 @@ class DashboardBody extends StatelessWidget {
                 ),
               ],
             ),
-            // Remaining content below the blue header stack
             const RequestsStatusSection(),
             const LoansSummarySection(),
             const CollectionProgressCard(),
-            const SizedBox(height: 40), // Padding for bottom nav
+            const SizedBox(height: 40),
           ],
         ),
       ),

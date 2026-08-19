@@ -689,7 +689,7 @@ class RequestDetailsPage extends StatelessWidget {
             // Chat Button
             GestureDetector(
               onTap: () {
-                final clientId = model.raw['userId'] ?? 'CUSTOMER-001';
+                final clientId = model.userId.isNotEmpty ? model.userId : 'CUSTOMER-001';
                 final clientName = model.name;
                 Navigator.push(
                   context,
@@ -786,7 +786,7 @@ class RequestDetailsPage extends StatelessWidget {
 
                     final service = FirebaseMessagingService();
                     await service.sendRefuseNotification(
-                      clientId: model.raw['clientId'] ?? 'default_client',
+                      clientId: model.userId.isNotEmpty ? model.userId : 'default_client',
                       requestId: model.requestId,
                     );
 
@@ -840,7 +840,7 @@ class RequestDetailsPage extends StatelessWidget {
 
                       final service = FirebaseMessagingService();
                       await service.sendAcceptNotification(
-                        clientId: model.raw['clientId'] ?? 'default_client',
+                        clientId: model.userId.isNotEmpty ? model.userId : 'default_client',
                         requestId: model.requestId,
                         currentStep: model.currentStep,
                       );
