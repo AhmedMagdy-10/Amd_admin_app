@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:typed_data';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
@@ -11,6 +13,17 @@ class FullScreenImageViewer extends StatelessWidget {
 
   Future<void> _downloadImage(BuildContext context) async {
     try {
+      if (Platform.isAndroid) {
+        var status = await Permission.storage.status;
+        if (!status.isGranted) {
+          await Permission.storage.request();
+        }
+        var photosStatus = await Permission.photos.status;
+        if (!photosStatus.isGranted) {
+          await Permission.photos.request();
+        }
+      }
+
       if (context.mounted) {
         Fluttertoast.showToast(msg: "جاري تحميل الصورة...");
       }
@@ -23,10 +36,10 @@ class FullScreenImageViewer extends StatelessWidget {
       if (result['isSuccess'] == true) {
         Fluttertoast.showToast(msg: "تم حفظ الصورة في المعرض");
       } else {
-        Fluttertoast.showToast(msg: "فشل حفظ الصورة");
+        Fluttertoast.showToast(msg: "فشل حفظ الصورة: ${result['errorMessage'] ?? 'Unknown error'}");
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: "حدث خطأ أثناء تحميل الصورة");
+      Fluttertoast.showToast(msg: "حدث خطأ: $e");
     }
   }
 

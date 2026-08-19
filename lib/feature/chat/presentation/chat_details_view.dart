@@ -134,34 +134,45 @@ class _ChatContentState extends State<_ChatContent> {
         child: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _textController,
-                decoration: InputDecoration(
-                  hintText: 'اكتب رسالتك...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  fillColor: Colors.grey.shade100,
-                  filled: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.attach_file, color: Colors.grey),
-                        onPressed: () => _pickImage(ImageSource.gallery),
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _textController,
+                builder: (context, value, child) {
+                  final isTyping = value.text.isNotEmpty;
+                  return TextField(
+                    controller: _textController,
+                    minLines: 1,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: 'اكتب رسالتك...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
-                        onPressed: () => _pickImage(ImageSource.camera),
+                      fillColor: Colors.grey.shade100,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Transform.rotate(
+                              angle: -0.785, // -45 degrees for upright paperclip
+                              child: const Icon(Icons.attach_file, color: Colors.grey),
+                            ),
+                            onPressed: () => _pickImage(ImageSource.gallery),
+                          ),
+                          if (!isTyping)
+                            IconButton(
+                              icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
+                              onPressed: () => _pickImage(ImageSource.camera),
+                            ),
+                          const SizedBox(width: 8),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ),
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _sendMessage(),
+                    ),
+                    textInputAction: TextInputAction.newline,
+                  );
+                },
               ),
             ),
             const SizedBox(width: 8),

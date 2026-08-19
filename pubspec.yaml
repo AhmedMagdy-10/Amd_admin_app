@@ -51,6 +51,7 @@ dependencies:
   url_launcher: ^6.3.2
   firebase_auth: ^6.5.7
   image_gallery_saver: ^2.0.3
+  permission_handler: ^13.0.1
 
 dev_dependencies:
   flutter_test:
