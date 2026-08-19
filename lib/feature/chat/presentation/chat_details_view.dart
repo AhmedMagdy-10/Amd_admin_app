@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/widgets/custom_toast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../logic/chat_cubit.dart';
@@ -403,18 +404,21 @@ class _ChatBubble extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            message.imageUrl!,
+                          child: CachedNetworkImage(
+                            imageUrl: message.imageUrl!,
                             fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                height: 150,
-                                width: 150,
-                                color: Colors.grey.shade200,
-                                child: const Center(child: CircularProgressIndicator()),
-                              );
-                            },
+                            placeholder: (context, url) => Container(
+                              height: 150,
+                              width: 150,
+                              color: Colors.grey.shade200,
+                              child: const Center(child: CircularProgressIndicator()),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: 150,
+                              width: 150,
+                              color: Colors.grey.shade200,
+                              child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                            ),
                           ),
                         ),
                       ),

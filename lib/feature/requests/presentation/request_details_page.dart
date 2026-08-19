@@ -1,7 +1,9 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../data/models/request_model.dart';
 import '../logic/requests_cubit.dart';
 import '../../chat/data/chat_client.dart';
@@ -1629,23 +1631,20 @@ class _StepDetailSheet extends StatelessWidget {
                     bottom: Radius.circular(20)),
                 child: Stack(
                   children: [
-                    Image.network(
-                      receiptUrl,
+                    CachedNetworkImage(
+                      imageUrl: receiptUrl,
                       width: double.infinity,
                       height: 200,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return Container(
-                          height: 200,
-                          color: Colors.grey.shade50,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                                color: Color(0xFF00838F), strokeWidth: 2),
-                          ),
-                        );
-                      },
-                      errorBuilder: (_, __, ___) => Container(
+                      placeholder: (context, url) => Container(
+                        height: 200,
+                        color: Colors.grey.shade50,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                              color: Color(0xFF00838F), strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
                         height: 100,
                         color: Colors.grey.shade50,
                         child: Center(
