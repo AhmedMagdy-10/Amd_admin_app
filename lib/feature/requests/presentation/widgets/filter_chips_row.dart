@@ -35,28 +35,32 @@ class FilterChipsRow extends StatelessWidget {
 
                 return Padding(
                   padding: const EdgeInsets.only(left: 8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      context.read<RequestsCubit>().changeFilter(title);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isActive ? const Color(0xFF2A2375) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isActive
-                              ? const Color(0xFF2A2375)
-                              : Colors.grey.shade300,
+                  child: Material(
+                    color: isActive ? const Color(0xFF2A2375) : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      onTap: () {
+                        context.read<RequestsCubit>().changeFilter(title);
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
                         ),
-                      ),
-                      child: Text(
-                        title,
-                        style: AppTextStyles.readexMedium14.copyWith(
-                          color: isActive ? Colors.white : Colors.black87,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isActive
+                                ? const Color(0xFF2A2375)
+                                : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: Text(
+                          title,
+                          style: AppTextStyles.readexMedium14.copyWith(
+                            color: isActive ? Colors.white : Colors.black87,
+                          ),
                         ),
                       ),
                     ),
