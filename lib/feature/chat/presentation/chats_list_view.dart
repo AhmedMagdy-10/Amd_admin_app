@@ -138,6 +138,7 @@ class _ChatsListContent extends StatelessWidget {
                                 String text = 'اضغط لبدء المحادثة';
                                 String timeText = '';
                                 bool isUnread = false;
+                                bool isMe = false;
 
                                 if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                                   final lastMsgData = snapshot.data!.first;
@@ -162,7 +163,7 @@ class _ChatsListContent extends StatelessWidget {
                                   final senderId = lastMsgData['senderId'] ?? '';
                                   final isRead = lastMsgData['isRead'] ?? true;
                                   
-                                  final isMe = adminUid.isNotEmpty ? senderId == adminUid : senderId == 'ADMIN-001';
+                                  isMe = adminUid.isNotEmpty ? senderId == adminUid : senderId == 'ADMIN-001';
                                   if (!isMe && !isRead) {
                                     isUnread = true;
                                   }
