@@ -63,14 +63,14 @@ class _PaymentsContentState extends State<_PaymentsContent> {
                       final groups = UserPaymentsGroup.groupPayments(
                         state.allPayments,
                       );
-                      final underReview = groups
-                          .where((g) => g.status == 'under_review')
+                      final underReview = state.allPayments
+                          .where((p) => p.status == 'under_review' || p.status == 'pending_review')
                           .length;
-                      final rejected = groups
-                          .where((g) => g.status == 'rejected')
+                      final rejected = state.allPayments
+                          .where((p) => p.status == 'rejected')
                           .length;
-                      final approved = groups
-                          .where((g) => g.status == 'approved' || g.status == 'paid')
+                      final approved = state.allPayments
+                          .where((p) => p.status == 'approved' || p.status == 'paid')
                           .length;
 
                       final total = state.allPayments.fold<double>(

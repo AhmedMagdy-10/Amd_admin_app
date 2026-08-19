@@ -73,13 +73,13 @@ class UserPaymentsGroup {
   static List<UserPaymentsGroup> filterGrouped(List<UserPaymentsGroup> groups, String filter) {
     if (filter == 'الكل') return groups;
     if (filter == 'قيد المراجعة') {
-      return groups.where((g) => g.status == 'under_review').toList();
+      return groups.where((g) => g.payments.any((p) => p.status == 'under_review' || p.status == 'pending_review')).toList();
     }
     if (filter == 'مسددة') {
-      return groups.where((g) => g.status == 'approved').toList();
+      return groups.where((g) => g.payments.any((p) => p.status == 'approved' || p.status == 'paid')).toList();
     }
     if (filter == 'مرفوضة') {
-      return groups.where((g) => g.status == 'rejected').toList();
+      return groups.where((g) => g.payments.any((p) => p.status == 'rejected')).toList();
     }
     return groups;
   }
