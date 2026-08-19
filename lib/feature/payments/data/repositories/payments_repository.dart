@@ -16,6 +16,7 @@ class PaymentsRepository {
   StreamSubscription<QuerySnapshot>? _sub;
 
   final Map<String, String> _userNamesCache = {};
+  final Map<String, int> _totalInstallmentsCache = {};
 
   Stream<List<PaymentModel>> get stream => _controller.stream;
 
@@ -36,7 +37,9 @@ class PaymentsRepository {
         final reqId = requestRef.id;
 
         String userName = _userNamesCache[reqId] ?? '';
-        if (userName.isEmpty) {
+        int totalInstallments = _totalInstallmentsCache[reqId] ?? 0;
+
+        if (userName.isEmpty || totalInstallments == 0) {
           final reqDoc = await requestRef.get();
           if (reqDoc.exists) {
             final data = reqDoc.data() ?? {};
@@ -54,15 +57,23 @@ class PaymentsRepository {
             userName = 'مستخدم غير معروف';
           }
           _userNamesCache[reqId] = userName;
+
+          if (totalInstallments == 0) {
+            final countSnap = await requestRef.collection('installments').count().get();
+            totalInstallments = countSnap.count ?? 1;
+            _totalInstallmentsCache[reqId] = totalInstallments;
+          }
         }
 
-        final payment = PaymentModel.fromFirestore(doc.reference, doc.data(), userName);
+        final payment = PaymentModel.fromFirestore(doc.reference, doc.data(), userName, totalInstallments);
         
-        // Show payments that have an uploaded receipt OR are pending_review (customer app)
-        // status: pending_review always means a receipt was uploaded waiting for admin
+        // Show payments that have been interacted with (repaid, needing approval, rejected)
         final hasReceipt = payment.receiptUrl != null && payment.receiptUrl!.isNotEmpty;
-        final isPendingReview = payment.status == 'pending_review';
-        if (hasReceipt || isPendingReview) {
+        final isPendingReview = payment.status == 'pending_review' || payment.status == 'under_review';
+        final isPaid = payment.status == 'approved' || payment.status == 'paid';
+        final isRejected = payment.status == 'rejected';
+
+        if (hasReceipt || isPendingReview || isPaid || isRejected) {
           list.add(payment);
         }
       }

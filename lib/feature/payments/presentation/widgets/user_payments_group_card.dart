@@ -48,7 +48,7 @@ class UserPaymentsGroup {
   double get totalAmount => payments.fold(0.0, (sum, p) => sum + p.amount);
   double get paidAmount => payments.where((p) => p.status == 'approved' || p.status == 'paid').fold(0.0, (sum, p) => sum + p.amount);
   int get paidCount => payments.where((p) => p.status == 'approved' || p.status == 'paid').length;
-  int get totalCount => payments.length;
+  int get totalCount => payments.isNotEmpty ? payments.first.totalInstallmentsCount : 0;
 
   static List<UserPaymentsGroup> groupPayments(List<PaymentModel> allPayments) {
     final Map<String, List<PaymentModel>> grouped = {};

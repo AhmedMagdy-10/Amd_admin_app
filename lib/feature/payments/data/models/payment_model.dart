@@ -14,6 +14,7 @@ class PaymentModel {
   final String? receiptUrl;  // Firebase Storage download URL
   final DateTime? uploadedAt;
   final DateTime? approvedAt;
+  final int totalInstallmentsCount; // Total number of installments for this request
 
   const PaymentModel({
     required this.id,
@@ -28,6 +29,7 @@ class PaymentModel {
     this.receiptUrl,
     this.uploadedAt,
     this.approvedAt,
+    this.totalInstallmentsCount = 1,
   });
 
   // ── Factory ──────────────────────────────────────────────────────────────────
@@ -36,6 +38,7 @@ class PaymentModel {
     DocumentReference ref, 
     Map<String, dynamic> data, 
     String fetchedUserName,
+    int totalInstallmentsCount,
   ) {
     return PaymentModel(
       id:            ref.id,
@@ -50,6 +53,7 @@ class PaymentModel {
       receiptUrl:    data['receiptUrl']?.toString(),
       uploadedAt:    _toDateTime(data['updatedAt']) ?? _toDateTime(data['uploadedAt']),
       approvedAt:    _toDateTime(data['approvedAt']),
+      totalInstallmentsCount: totalInstallmentsCount,
     );
   }
 
