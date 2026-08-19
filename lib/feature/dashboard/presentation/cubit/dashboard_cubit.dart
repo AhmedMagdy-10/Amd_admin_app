@@ -17,7 +17,14 @@ class DashboardCubit extends Cubit<DashboardState> {
   List<RequestModel> _requests = [];
   List<PaymentModel> _payments = [];
 
+  DateTime _selectedDate = DateTime.now();
+
   DashboardCubit() : super(const DashboardInitial());
+
+  void changeDate(DateTime date) {
+    _selectedDate = date;
+    _recalculateStats();
+  }
 
   void fetchDashboardStats() {
     emit(const DashboardLoading());
@@ -50,7 +57,7 @@ class DashboardCubit extends Cubit<DashboardState> {
   void _recalculateStats() {
     if (isClosed) return;
 
-    final now = DateTime.now();
+    final now = _selectedDate;
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(const Duration(seconds: 1));
     final startOfDay = DateTime(now.year, now.month, now.day);
@@ -81,9 +88,11 @@ class DashboardCubit extends Cubit<DashboardState> {
     double outstandingSum = 0.0;
 
     for (var r in _requests) {
+      if (r.status == 'rejected') continue;
+      
       if (r.status == 'eligibility_pending' || r.status == 'pending' || r.currentStep == 1) {
         reqCount++;
-      } else if (r.status == 'under_review') {
+      } else if (r.status == 'under_review' || r.status == 'eligibility_approved' || r.status == 'request_approved' || r.currentStep == 2 || r.currentStep == 3) {
         underReviewCount++;
       } else if (r.status == 'approved' || r.status == 'loan_active' || r.outstandingBalance > 0) {
         // If a request is approved and payments are generated, it becomes a loan
@@ -106,6 +115,7 @@ class DashboardCubit extends Cubit<DashboardState> {
       unpaidLoansCount: unpaidLoans,
       totalCollectedAmount: totalCollected,
       totalTargetAmount: totalCollected + outstandingSum,
+      selectedDate: _selectedDate,
     ));
   }
 

@@ -21,6 +21,7 @@ class DashboardLoaded extends DashboardState {
   final int unpaidLoansCount;
   final double totalCollectedAmount;
   final double totalTargetAmount;
+  final DateTime selectedDate;
 
   const DashboardLoaded({
     required this.todayPaymentsTotal,
@@ -31,6 +32,7 @@ class DashboardLoaded extends DashboardState {
     required this.unpaidLoansCount,
     required this.totalCollectedAmount,
     required this.totalTargetAmount,
+    required this.selectedDate,
   });
 }
 
