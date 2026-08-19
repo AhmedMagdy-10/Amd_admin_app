@@ -15,6 +15,7 @@ class FilterChipsRow extends StatelessWidget {
       'تقديم الطلب',
       'انتظار تسليم المبلغ',
       'مكتملة',
+      'طلبات خارج المملكة',
     ];
 
     return Directionality(

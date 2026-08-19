@@ -22,30 +22,45 @@ class RequestsLoaded extends RequestsState {
     return status == 'approved' || status == 'مكتملة' || status == 'مكتمل' || status == 'transfer_approved';
   }
 
-  int get countInReview => allRequests.where((r) => r.currentStep == 1 && !_isRejected(r) && !_isCompleted(r)).length;
-  int get countSubmission => allRequests.where((r) => r.currentStep == 2 && !_isRejected(r) && !_isCompleted(r)).length;
-  int get countWaitingTransfer => allRequests.where((r) => r.currentStep == 3 && !_isRejected(r) && !_isCompleted(r)).length;
-  int get countCompleted => allRequests.where((r) => r.currentStep >= 4 || _isCompleted(r)).length;
-  int get countTotal => allRequests.length;
+  bool _isOutsideSaudi(RequestModel r) {
+    return r.country.isNotEmpty && 
+           r.country != 'المملكة العربية السعودية' && 
+           r.country != 'السعودية' && 
+           r.country != 'Saudi Arabia';
+  }
+
+  int get countInReview => allRequests.where((r) => r.currentStep == 1 && !_isRejected(r) && !_isCompleted(r) && !_isOutsideSaudi(r)).length;
+  int get countSubmission => allRequests.where((r) => r.currentStep == 2 && !_isRejected(r) && !_isCompleted(r) && !_isOutsideSaudi(r)).length;
+  int get countWaitingTransfer => allRequests.where((r) => r.currentStep == 3 && !_isRejected(r) && !_isCompleted(r) && !_isOutsideSaudi(r)).length;
+  int get countCompleted => allRequests.where((r) => (r.currentStep >= 4 || _isCompleted(r)) && !_isOutsideSaudi(r)).length;
+  int get countOutsideSaudi => allRequests.where((r) => _isOutsideSaudi(r)).length;
+  int get countTotal => allRequests.where((r) => !_isOutsideSaudi(r)).length;
 
   /// Returns filtered requests based on [selectedFilter].
   List<RequestModel> get requests {
-    if (selectedFilter == 'الكل') return allRequests;
+    if (selectedFilter == 'طلبات خارج المملكة') {
+      return allRequests.where((r) => _isOutsideSaudi(r)).toList();
+    }
+
+    // Exclude outside Saudi from all other normal filters
+    final validRequests = allRequests.where((r) => !_isOutsideSaudi(r)).toList();
+
+    if (selectedFilter == 'الكل') return validRequests;
 
     if (selectedFilter == 'جاري المراجعة' || selectedFilter == 'جاري المراجعه') {
-      return allRequests.where((r) => r.currentStep == 1 && !_isRejected(r) && !_isCompleted(r)).toList();
+      return validRequests.where((r) => r.currentStep == 1 && !_isRejected(r) && !_isCompleted(r)).toList();
     }
     if (selectedFilter == 'تقديم الطلب') {
-      return allRequests.where((r) => r.currentStep == 2 && !_isRejected(r) && !_isCompleted(r)).toList();
+      return validRequests.where((r) => r.currentStep == 2 && !_isRejected(r) && !_isCompleted(r)).toList();
     }
     if (selectedFilter == 'انتظار تسليم المبلغ') {
-      return allRequests.where((r) => r.currentStep == 3 && !_isRejected(r) && !_isCompleted(r)).toList();
+      return validRequests.where((r) => r.currentStep == 3 && !_isRejected(r) && !_isCompleted(r)).toList();
     }
     if (selectedFilter == 'مكتملة' || selectedFilter == 'متكملة') {
-      return allRequests.where((r) => r.currentStep >= 4 || _isCompleted(r)).toList();
+      return validRequests.where((r) => r.currentStep >= 4 || _isCompleted(r)).toList();
     }
 
-    return allRequests;
+    return validRequests;
   }
 }
 
