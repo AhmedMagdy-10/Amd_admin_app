@@ -11,27 +11,46 @@ class NotificationsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F8FC),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: Text(
           'الإشعارات',
-          style: AppTextStyles.readexSemiBold20.copyWith(color: const Color(0xFF4A4499)),
+          style: AppTextStyles.readexSemiBold20.copyWith(color: const Color(0xFF33334D)),
         ),
         leading: const SizedBox.shrink(),
         actions: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_forward_ios, color: Color(0xFF4A4499)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: InkWell(
+              onTap: () => Navigator.pop(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.arrow_forward_ios, color: Color(0xFF33334D), size: 16),
+              ),
+            ),
           ),
         ],
       ),
       body: BlocBuilder<NotificationsCubit, NotificationsState>(
         builder: (context, state) {
           if (state is NotificationsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF4A4499)));
           }
           if (state is NotificationsError) {
             return Center(child: Text('حدث خطأ: ${state.error}'));
@@ -49,7 +68,7 @@ class NotificationsView extends StatelessWidget {
             }
             
             return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notif = notifications[index];
@@ -59,7 +78,6 @@ class NotificationsView extends StatelessWidget {
                     if (!notif.isRead) {
                       context.read<NotificationsCubit>().markAsRead(notif.id);
                     }
-                    // TODO: Add navigation based on notification type if needed
                   },
                 );
               },
@@ -89,16 +107,16 @@ class _NotificationCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isUnread ? const Color(0xFFF9FAFF) : Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: const Color(0xFFE6E8F3).withValues(alpha: 0.6),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -109,16 +127,16 @@ class _NotificationCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
-                color: Color(0xFFF0F0FA),
+                color: Color(0xFFF3F4F9),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.notifications_none,
-                color: Color(0xFF4A4499),
+                color: Color(0xFF6B65B5),
                 size: 24,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             // Content
             Expanded(
               child: Column(
@@ -126,42 +144,44 @@ class _NotificationCard extends StatelessWidget {
                 children: [
                   Text(
                     notification.title,
-                    style: AppTextStyles.readexSemiBold16.copyWith(
-                      color: const Color(0xFF1F1F39),
+                    style: AppTextStyles.readexSemiBold14.copyWith(
+                      color: isUnread ? const Color(0xFF1F1F39) : const Color(0xFF858597),
                     ),
                   ),
                   if (notification.body.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       notification.body,
-                      style: AppTextStyles.readexRegular14.copyWith(
-                        color: const Color(0xFF858597),
-                        height: 1.4,
+                      style: AppTextStyles.readexRegular12.copyWith(
+                        color: const Color(0xFF9E9EAF),
+                        height: 1.5,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Text(
                     notification.timeAgoArabic,
-                    style: AppTextStyles.readexRegular12.copyWith(
-                      color: const Color(0xFFB8B8D2),
+                    style: AppTextStyles.readexRegular10.copyWith(
+                      color: const Color(0xFFC4C4D4),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            // Unread Dot
+            const SizedBox(width: 12),
+            // Unread Dot (On the left side of the card in RTL)
             if (isUnread)
               Container(
                 margin: const EdgeInsets.only(top: 8),
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF4A4499),
+                  color: Color(0xFF6B65B5),
                   shape: BoxShape.circle,
                 ),
-              ),
+              )
+            else
+              const SizedBox(width: 8),
           ],
         ),
       ),
