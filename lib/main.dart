@@ -11,6 +11,7 @@ import 'core/services/firebase_messaging_service.dart';
 
 import 'feature/notifications/logic/notifications_cubit.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -50,6 +51,16 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Amd Admin',
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ar', 'EG'),
+          Locale('en', 'US'),
+        ],
+        locale: const Locale('ar', 'EG'),
         builder: (context, child) {
           return Directionality(
             textDirection: TextDirection.rtl,
