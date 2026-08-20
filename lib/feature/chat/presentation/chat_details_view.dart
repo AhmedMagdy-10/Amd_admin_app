@@ -146,13 +146,13 @@ class _ChatContentState extends State<_ChatContent> {
 
   Future<void> _pickContact() async {
     try {
-      if (await FlutterContacts.requestPermission()) {
-        final contact = await FlutterContacts.openExternalPick();
+      final status = await FlutterContacts.permissions.request(PermissionType.read);
+      if (status == PermissionStatus.granted || status == PermissionStatus.limited) {
+        final contact = await FlutterContacts.native.showPicker(properties: {ContactProperty.phone});
         if (contact != null) {
-          final fullContact = await FlutterContacts.getContact(contact.id);
-          if (fullContact != null && fullContact.phones.isNotEmpty) {
-            String contactName = fullContact.displayName;
-            String contactPhone = fullContact.phones.first.number;
+          if (contact.phones.isNotEmpty) {
+            String contactName = contact.displayName ?? 'بدون اسم';
+            String contactPhone = contact.phones.first.number;
             String message = 'جهة اتصال 👤\nالاسم: $contactName\nالرقم: $contactPhone';
             
             if (!mounted) return;
