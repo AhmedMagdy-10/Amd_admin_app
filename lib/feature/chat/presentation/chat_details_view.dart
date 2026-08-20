@@ -11,6 +11,7 @@ import 'widgets/full_screen_image_viewer.dart';
 import '../../../core/services/firebase_messaging_service.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 
+import 'package:flutter_contacts/flutter_contacts.dart';
 import '../data/chat_client.dart';
 
 class ChatDetailsView extends StatelessWidget {
@@ -143,13 +144,43 @@ class _ChatContentState extends State<_ChatContent> {
     );
   }
 
+  Future<void> _pickContact() async {
+    try {
+      if (await FlutterContacts.requestPermission()) {
+        final contact = await FlutterContacts.openExternalPick();
+        if (contact != null) {
+          final fullContact = await FlutterContacts.getContact(contact.id);
+          if (fullContact != null && fullContact.phones.isNotEmpty) {
+            String contactName = fullContact.displayName;
+            String contactPhone = fullContact.phones.first.number;
+            String message = 'جهة اتصال 👤\nالاسم: $contactName\nالرقم: $contactPhone';
+            
+            if (!mounted) return;
+            context.read<ChatCubit>().sendMessage(message);
+            
+            _fcmService.sendChatMessageNotification(
+              clientId: widget.client.id,
+              messagePreview: 'جهة اتصال: $contactName',
+            );
+          } else {
+            showToast(text: 'جهة الاتصال لا تحتوي على رقم هاتف', state: ToastStates.error);
+          }
+        }
+      } else {
+        showToast(text: 'يرجى إعطاء صلاحية الوصول لجهات الاتصال', state: ToastStates.error);
+      }
+    } catch (e) {
+      showToast(text: 'فشل اختيار جهة الاتصال', state: ToastStates.error);
+    }
+  }
+
   void _showAttachmentOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (builder) {
         return Container(
-          height: 250,
+          height: 150,
           margin: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -157,72 +188,44 @@ class _ChatContentState extends State<_ChatContent> {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _attachmentItem(
-                      icon: Icons.image,
-                      color: Colors.purple,
-                      label: "المعرض",
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickImage(ImageSource.gallery);
-                      },
-                    ),
-                    _attachmentItem(
-                      icon: Icons.camera_alt,
-                      color: Colors.pink,
-                      label: "الكاميرا",
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickImage(ImageSource.camera);
-                      },
-                    ),
-                    _attachmentItem(
-                      icon: Icons.insert_drive_file,
-                      color: Colors.blue,
-                      label: "مستند",
-                      onTap: () {
-                        Navigator.pop(context);
-                        _pickDocument();
-                      },
-                    ),
-                  ],
+                _attachmentItem(
+                  icon: Icons.image,
+                  color: Colors.purple,
+                  label: "المعرض",
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  },
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _attachmentItem(
-                      icon: Icons.headset,
-                      color: Colors.orange,
-                      label: "صوت",
-                      onTap: () {
-                        Navigator.pop(context);
-                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
-                      },
-                    ),
-                    _attachmentItem(
-                      icon: Icons.location_on,
-                      color: Colors.green,
-                      label: "الموقع",
-                      onTap: () {
-                        Navigator.pop(context);
-                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
-                      },
-                    ),
-                    _attachmentItem(
-                      icon: Icons.person,
-                      color: Colors.blueAccent,
-                      label: "جهة اتصال",
-                      onTap: () {
-                        Navigator.pop(context);
-                        showToast(text: 'هذه الميزة غير متوفرة بعد', state: ToastStates.error);
-                      },
-                    ),
-                  ],
+                _attachmentItem(
+                  icon: Icons.camera_alt,
+                  color: Colors.pink,
+                  label: "الكاميرا",
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                _attachmentItem(
+                  icon: Icons.insert_drive_file,
+                  color: Colors.blue,
+                  label: "مستند",
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickDocument();
+                  },
+                ),
+                _attachmentItem(
+                  icon: Icons.person,
+                  color: Colors.blueAccent,
+                  label: "جهة اتصال",
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickContact();
+                  },
                 ),
               ],
             ),
