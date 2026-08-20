@@ -148,9 +148,10 @@ class _ChatContentState extends State<_ChatContent> {
     try {
       final status = await FlutterContacts.permissions.request(PermissionType.read);
       if (status == PermissionStatus.granted || status == PermissionStatus.limited) {
-        final contact = await FlutterContacts.native.showPicker(properties: {ContactProperty.phone});
-        if (contact != null) {
-          if (contact.phones.isNotEmpty) {
+        final pickedContact = await FlutterContacts.native.showPicker();
+        if (pickedContact != null) {
+          final contact = await FlutterContacts.get(pickedContact.id, properties: {ContactProperty.phone});
+          if (contact != null && contact.phones.isNotEmpty) {
             String contactName = contact.displayName ?? 'بدون اسم';
             String contactPhone = contact.phones.first.number;
             String message = 'جهة اتصال 👤\nالاسم: $contactName\nالرقم: $contactPhone';
