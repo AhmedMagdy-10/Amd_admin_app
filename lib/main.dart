@@ -11,12 +11,14 @@ import 'core/services/firebase_messaging_service.dart';
 
 import 'feature/notifications/logic/notifications_cubit.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDateFormatting('ar', null);
 
   // Start the single Firestore listener for the entire app lifetime
-
   RequestsRepository.instance.init();
 
   // Initialize background & foreground FCM handlers and request permissions
