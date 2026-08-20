@@ -11,7 +11,6 @@ import 'widgets/full_screen_image_viewer.dart';
 import '../../../core/services/firebase_messaging_service.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 
-import 'package:flutter_contacts/flutter_contacts.dart';
 import '../data/chat_client.dart';
 
 class ChatDetailsView extends StatelessWidget {
@@ -144,37 +143,6 @@ class _ChatContentState extends State<_ChatContent> {
     );
   }
 
-  Future<void> _pickContact() async {
-    try {
-      final status = await FlutterContacts.permissions.request(PermissionType.read);
-      if (status == PermissionStatus.granted || status == PermissionStatus.limited) {
-        final pickedContact = await FlutterContacts.native.showPicker();
-        if (pickedContact != null && pickedContact.id != null) {
-          final contact = await FlutterContacts.get(pickedContact.id!, properties: {ContactProperty.phone});
-          if (contact != null && contact.phones.isNotEmpty) {
-            String contactName = contact.displayName ?? 'بدون اسم';
-            String contactPhone = contact.phones.first.number;
-            String message = 'جهة اتصال 👤\nالاسم: $contactName\nالرقم: $contactPhone';
-            
-            if (!mounted) return;
-            context.read<ChatCubit>().sendMessage(message);
-            
-            _fcmService.sendChatMessageNotification(
-              clientId: widget.client.id,
-              messagePreview: 'جهة اتصال: $contactName',
-            );
-          } else {
-            showToast(text: 'جهة الاتصال لا تحتوي على رقم هاتف', state: ToastStates.error);
-          }
-        }
-      } else {
-        showToast(text: 'يرجى إعطاء صلاحية الوصول لجهات الاتصال', state: ToastStates.error);
-      }
-    } catch (e) {
-      showToast(text: 'فشل اختيار جهة الاتصال', state: ToastStates.error);
-    }
-  }
-
   void _showAttachmentOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -217,15 +185,6 @@ class _ChatContentState extends State<_ChatContent> {
                   onTap: () {
                     Navigator.pop(context);
                     _pickDocument();
-                  },
-                ),
-                _attachmentItem(
-                  icon: Icons.person,
-                  color: Colors.blueAccent,
-                  label: "جهة اتصال",
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickContact();
                   },
                 ),
               ],
