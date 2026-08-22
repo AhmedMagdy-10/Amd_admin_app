@@ -23,10 +23,20 @@ class RequestsLoaded extends RequestsState {
   }
 
   bool _isOutsideSaudi(RequestModel r) {
-    return r.country.isNotEmpty && 
-           r.country != 'المملكة العربية السعودية' && 
-           r.country != 'السعودية' && 
-           r.country != 'Saudi Arabia';
+    final c = r.residenceCountry.trim().isNotEmpty ? r.residenceCountry.trim() : r.country.trim();
+    if (c.isEmpty) return false;
+    
+    // Check against the specific 5 Gulf countries (excluding Saudi Arabia)
+    // This avoids matching nationality fields (like "مصر" or "اليمن")
+    if (c == 'دولة الإمارات العربية المتحدة' || c == 'الإمارات' ||
+        c == 'دولة الكويت' || c == 'الكويت' ||
+        c == 'مملكة البحرين' || c == 'البحرين' ||
+        c == 'دولة قطر' || c == 'قطر' ||
+        c == 'سلطنة عُمان' || c == 'سلطنة عمان' || c == 'عمان') {
+      return true;
+    }
+    
+    return false;
   }
 
   int get countInReview => allRequests.where((r) => r.currentStep == 1 && !_isRejected(r) && !_isCompleted(r) && !_isOutsideSaudi(r)).length;

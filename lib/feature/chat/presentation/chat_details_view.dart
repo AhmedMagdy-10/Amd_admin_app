@@ -15,7 +15,7 @@ import '../data/chat_client.dart';
 
 class ChatDetailsView extends StatelessWidget {
   final ChatClient client;
-  
+
   const ChatDetailsView({super.key, required this.client});
 
   @override
@@ -29,7 +29,7 @@ class ChatDetailsView extends StatelessWidget {
 
 class _ChatContent extends StatefulWidget {
   final ChatClient client;
-  
+
   const _ChatContent({required this.client});
 
   @override
@@ -42,11 +42,14 @@ class _ChatContentState extends State<_ChatContent> {
   final FirebaseMessagingService _fcmService = FirebaseMessagingService();
 
   Future<void> _pickImage(ImageSource source) async {
-    final XFile? image = await _picker.pickImage(source: source, imageQuality: 70);
+    final XFile? image = await _picker.pickImage(
+      source: source,
+      imageQuality: 70,
+    );
     if (image != null) {
       if (!mounted) return;
       context.read<ChatCubit>().sendImageMessage(File(image.path));
-      
+
       // Notify client
       _fcmService.sendChatMessageNotification(
         clientId: widget.client.id,
@@ -65,7 +68,7 @@ class _ChatContentState extends State<_ChatContent> {
         if (!mounted) return;
         File file = File(result.files.single.path!);
         String fileName = result.files.single.name;
-        
+
         context.read<ChatCubit>().sendDocumentMessage(file, fileName);
 
         // Notify client
@@ -84,13 +87,13 @@ class _ChatContentState extends State<_ChatContent> {
     if (text.trim().isEmpty) return;
 
     context.read<ChatCubit>().sendMessage(text);
-    
+
     // Notify client
     _fcmService.sendChatMessageNotification(
       clientId: widget.client.id,
       messagePreview: text.trim(),
     );
-    
+
     _textController.clear();
   }
 
@@ -120,7 +123,10 @@ class _ChatContentState extends State<_ChatContent> {
                 Expanded(
                   child: ListView.builder(
                     reverse: true, // Show latest at bottom
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: state.messages.length,
                     itemBuilder: (context, index) {
                       final message = state.messages[index];
@@ -253,20 +259,30 @@ class _ChatContentState extends State<_ChatContent> {
                       ),
                       fillColor: Colors.grey.shade100,
                       filled: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       suffixIcon: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
                             icon: Transform.rotate(
-                              angle: -0.785, // -45 degrees for upright paperclip
-                              child: const Icon(Icons.attach_file, color: Colors.grey),
+                              angle:
+                                  -0.785, // -45 degrees for upright paperclip
+                              child: const Icon(
+                                Icons.attach_file,
+                                color: Colors.grey,
+                              ),
                             ),
                             onPressed: () => _showAttachmentOptions(context),
                           ),
                           if (!isTyping)
                             IconButton(
-                              icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
+                              icon: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: Colors.grey,
+                              ),
                               onPressed: () => _pickImage(ImageSource.camera),
                             ),
                           const SizedBox(width: 8),
@@ -305,7 +321,7 @@ class _ChatBubble extends StatelessWidget {
     final isMe = adminUid.isNotEmpty
         ? message.senderId == adminUid
         : message.senderId == 'ADMIN-001';
-    
+
     String timeFormat = '';
     if (message.timestamp != null) {
       final hour = message.timestamp!.hour;
@@ -328,8 +344,12 @@ class _ChatBubble extends StatelessWidget {
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
-            bottomLeft: isMe ? const Radius.circular(4) : const Radius.circular(16),
-            bottomRight: isMe ? const Radius.circular(16) : const Radius.circular(4),
+            bottomLeft: isMe
+                ? const Radius.circular(4)
+                : const Radius.circular(16),
+            bottomRight: isMe
+                ? const Radius.circular(16)
+                : const Radius.circular(4),
           ),
           boxShadow: [
             BoxShadow(
@@ -358,13 +378,19 @@ class _ChatBubble extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => FullScreenImageViewer(imageUrl: message.imageUrl!),
+                            builder: (_) => FullScreenImageViewer(
+                              imageUrl: message.imageUrl!,
+                            ),
                           ),
                         );
                       },
                       child: Padding(
                         padding: EdgeInsets.only(
-                          bottom: (message.text.isNotEmpty && message.text != 'صورة مرفقة') ? 8.0 : 0.0,
+                          bottom:
+                              (message.text.isNotEmpty &&
+                                  message.text != 'صورة مرفقة')
+                              ? 8.0
+                              : 0.0,
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -375,13 +401,20 @@ class _ChatBubble extends StatelessWidget {
                               height: 150,
                               width: 150,
                               color: Colors.grey.shade200,
-                              child: const Center(child: CircularProgressIndicator()),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             ),
                             errorWidget: (context, url, error) => Container(
                               height: 150,
                               width: 150,
                               color: Colors.grey.shade200,
-                              child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ),
                           ),
                         ),

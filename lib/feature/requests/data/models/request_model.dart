@@ -32,7 +32,8 @@ class RequestModel {
   final String currentLoanInstallment;
   final String remainingMonths;
   final num outstandingBalance;     // Added for keeping track of outstanding balance
-  final String country;             // Added for filtering non-Saudi residents
+  final String country;             // Legacy field (sometimes stores nationality)
+  final String residenceCountry;    // Explicitly for the country of residence
   final String userId;              // Added for dynamic auth chats/notifications
   final Map<String, String> images; // key → URL
   final Map<String, dynamic> raw;   // full raw data (for write-back operations)
@@ -62,6 +63,7 @@ class RequestModel {
     required this.remainingMonths,
     required this.outstandingBalance,
     required this.country,
+    required this.residenceCountry,
     required this.userId,
     required this.images,
     required this.raw,
@@ -137,7 +139,12 @@ class RequestModel {
                                 : field('currentLoanInstallment'),
       remainingMonths:        field('remainingMonths'),
       outstandingBalance:     data['outstandingBalance'] as num? ?? 0,
-      country:                field('country').isNotEmpty ? field('country') : (field('residenceCountry').isNotEmpty ? field('residenceCountry') : field('الدولة المقيم بها حالياً')),
+      country:                field('country'),
+      residenceCountry:       field('residenceCountry').isNotEmpty 
+                                ? field('residenceCountry') 
+                                : (field('الدولة المقيم بها حالياً').isNotEmpty 
+                                    ? field('الدولة المقيم بها حالياً') 
+                                    : ''),
       userId:                 (data['userId'] ?? data['uid'] ?? '').toString(),
       images:                 images,
       raw: {
