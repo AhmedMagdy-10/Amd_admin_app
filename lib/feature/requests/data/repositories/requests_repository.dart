@@ -116,7 +116,7 @@ class RequestsRepository {
       final cacheKey = '${cachePrefix}_${doc.id}';
       final data = doc.data() as Map<String, dynamic>;
       
-      final userId = (data['userId'] ?? data['uid'])?.toString();
+      final userId = (data['userId'] ?? data['uid'] ?? data['clientId'])?.toString();
       if (userId != null && userId.isNotEmpty) {
         if (!_userResidenceCache.containsKey(userId)) {
           try {

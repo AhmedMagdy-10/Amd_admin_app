@@ -149,7 +149,7 @@ class RequestModel {
                                         : (field('الدولة المقيم بها حالياً').isNotEmpty 
                                             ? field('الدولة المقيم بها حالياً') 
                                             : ''))),
-      userId:                 (data['userId'] ?? data['uid'] ?? '').toString(),
+      userId:                 (data['userId'] ?? data['uid'] ?? data['clientId'] ?? '').toString(),
       images:                 images,
       raw: {
         ...data,
