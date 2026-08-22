@@ -140,11 +140,15 @@ class RequestModel {
       remainingMonths:        field('remainingMonths'),
       outstandingBalance:     data['outstandingBalance'] as num? ?? 0,
       country:                field('country'),
-      residenceCountry:       field('residenceCountry').isNotEmpty 
-                                ? field('residenceCountry') 
-                                : (field('الدولة المقيم بها حالياً').isNotEmpty 
-                                    ? field('الدولة المقيم بها حالياً') 
-                                    : ''),
+      residenceCountry:       field('fetched_residence').isNotEmpty
+                                ? field('fetched_residence')
+                                : (field('residence').isNotEmpty
+                                    ? field('residence')
+                                    : (field('residenceCountry').isNotEmpty 
+                                        ? field('residenceCountry') 
+                                        : (field('الدولة المقيم بها حالياً').isNotEmpty 
+                                            ? field('الدولة المقيم بها حالياً') 
+                                            : ''))),
       userId:                 (data['userId'] ?? data['uid'] ?? '').toString(),
       images:                 images,
       raw: {

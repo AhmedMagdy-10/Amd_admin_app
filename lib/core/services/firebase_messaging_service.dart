@@ -2,12 +2,45 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'fcm_api_service.dart';
+
+Future<void> _saveNotificationToFirestore(RemoteMessage message) async {
+  final notification = message.notification;
+  if (notification == null) return;
+
+  String title = notification.title ?? '';
+  final data = message.data;
+  final reqId = data['requestId'] ?? data['request_id'] ?? data['reqId'];
+  if (reqId != null && reqId.toString().isNotEmpty && !title.contains('طلب رقم')) {
+    title = '$title - طلب رقم #${reqId.toString()}';
+  }
+
+  try {
+    final msgId = message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    await FirebaseFirestore.instance
+        .collection('admins')
+        .doc('ADMIN-001')
+        .collection('notifications')
+        .doc(msgId)
+        .set({
+      'title': title,
+      'body': notification.body ?? '',
+      'timestamp': FieldValue.serverTimestamp(),
+      'isRead': false,
+    }, SetOptions(merge: true));
+    print('FCM: ✅ Saved notification to admins/ADMIN-001/notifications');
+  } catch (e) {
+    print("FCM: ❌ Error saving notification: $e");
+  }
+}
 
 // Top-level background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("FCM Background: Message received: ${message.messageId}");
+  await Firebase.initializeApp();
+  await _saveNotificationToFirestore(message);
 }
 
 class FirebaseMessagingService {
@@ -81,6 +114,9 @@ class FirebaseMessagingService {
         if (reqId != null && reqId.toString().isNotEmpty && !title.contains('طلب رقم')) {
           title = '$title - طلب رقم #${reqId.toString()}';
         }
+
+        // Save to in-app notifications view
+        _saveNotificationToFirestore(message);
 
         _localNotifications.show(
           notification.hashCode,

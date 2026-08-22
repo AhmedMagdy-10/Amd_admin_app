@@ -80,6 +80,8 @@ class RequestsRepository {
 
   // ── Private helpers ──────────────────────────────────────────────────────────
 
+  final Map<String, String> _userResidenceCache = {};
+
   void _listenToCollection({
     required String collectionName,
     required String cachePrefix,
@@ -98,28 +100,45 @@ class RequestsRepository {
     _subscriptions.add(sub);
   }
 
-  void _onSnapshot(
+  Future<void> _onSnapshot(
     QuerySnapshot snapshot,
     String collectionName,
     String cachePrefix,
-  ) {
+  ) async {
     // Remove documents deleted from this collection since last snapshot
     final liveIds = snapshot.docs.map((d) => '${cachePrefix}_${d.id}').toSet();
     _cache.removeWhere(
       (key, _) => key.startsWith('${cachePrefix}_') && !liveIds.contains(key),
     );
 
-    // Upsert changed/new documents (Firestore only sends documents that changed)
+    // Upsert changed/new documents
     for (final doc in snapshot.docs) {
       final cacheKey = '${cachePrefix}_${doc.id}';
+      final data = doc.data() as Map<String, dynamic>;
+      
+      final userId = (data['userId'] ?? data['uid'])?.toString();
+      if (userId != null && userId.isNotEmpty) {
+        if (!_userResidenceCache.containsKey(userId)) {
+          try {
+            final userDoc = await _firestore.collection('users').doc(userId).get();
+            _userResidenceCache[userId] = userDoc.data()?['residence']?.toString() ?? '';
+          } catch (e) {
+            _userResidenceCache[userId] = '';
+          }
+        }
+        data['fetched_residence'] = _userResidenceCache[userId];
+      }
+
       _cache[cacheKey] = RequestModel.fromFirestore(
         doc.id,
-        doc.data() as Map<String, dynamic>,
+        data,
         collectionName,
       );
     }
 
     _isReady = true;
-    _controller.add(cached);
+    if (!_controller.isClosed) {
+      _controller.add(cached);
+    }
   }
 }
