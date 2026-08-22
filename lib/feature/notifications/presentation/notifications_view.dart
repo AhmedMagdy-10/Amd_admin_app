@@ -123,7 +123,7 @@ class _NotificationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon
+            // Icon (on the right in RTL)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
@@ -140,18 +140,21 @@ class _NotificationCard extends StatelessWidget {
             // Content
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start, // Align to right in RTL
                 children: [
                   Text(
-                    notification.title,
+                    notification.title.trim(),
+                    textAlign: TextAlign.start,
                     style: AppTextStyles.readexSemiBold14.copyWith(
-                      color: isUnread ? const Color(0xFF1F1F39) : const Color(0xFF858597),
+                      color: const Color(0xFF1F1F39), // Always dark like Image 2
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   if (notification.body.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      notification.body,
+                      notification.body.trim(),
+                      textAlign: TextAlign.start,
                       style: AppTextStyles.readexRegular12.copyWith(
                         color: const Color(0xFF9E9EAF),
                         height: 1.5,
@@ -161,6 +164,7 @@ class _NotificationCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     notification.timeAgoArabic,
+                    textAlign: TextAlign.start,
                     style: AppTextStyles.readexRegular10.copyWith(
                       color: const Color(0xFFC4C4D4),
                     ),
@@ -169,7 +173,7 @@ class _NotificationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Unread Dot (On the left side of the card in RTL)
+            // Unread Dot (on the left in RTL)
             if (isUnread)
               Container(
                 margin: const EdgeInsets.only(top: 8),
