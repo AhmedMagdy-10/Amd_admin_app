@@ -528,51 +528,45 @@ class RequestDetailsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            'إلغاء',
-                            style: AppTextStyles.readexMedium14.copyWith(color: Colors.grey.shade700),
-                          ),
+                      ),
+                      child: Text(
+                        confirmText,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.readexMedium14.copyWith(
+                          color: Colors.white,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            confirmText,
-                            style: AppTextStyles.readexMedium14.copyWith(color: Colors.white),
-                          ),
-                        ),
+                      ),
+                      child: Text(
+                        'إلغاء',
+                        style: AppTextStyles.readexMedium14.copyWith(color: Colors.grey.shade700),
                       ),
                     ),
                   ),
