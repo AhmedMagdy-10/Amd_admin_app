@@ -56,10 +56,7 @@ class MyApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('ar', 'EG'),
-          Locale('en', 'US'),
-        ],
+        supportedLocales: const [Locale('ar', 'EG'), Locale('en', 'US')],
         locale: const Locale('ar', 'EG'),
         builder: (context, child) {
           return Directionality(

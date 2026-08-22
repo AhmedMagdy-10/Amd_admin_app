@@ -28,7 +28,8 @@ class RequestsLoaded extends RequestsState {
     
     // Check against the specific 5 Gulf countries (excluding Saudi Arabia)
     // This avoids matching nationality fields (like "مصر" or "اليمن")
-    if (c == 'دولة الإمارات العربية المتحدة' || c == 'الإمارات' ||
+    if (c == 'دولة الإمارات العربية المتحدة' || c == 'دولة الامارات العربية المتحدة' ||
+        c == 'الإمارات' || c == 'الامارات' ||
         c == 'دولة الكويت' || c == 'الكويت' ||
         c == 'مملكة البحرين' || c == 'البحرين' ||
         c == 'دولة قطر' || c == 'قطر' ||
