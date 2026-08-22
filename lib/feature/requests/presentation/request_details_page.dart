@@ -656,14 +656,41 @@ class RequestDetailsPage extends StatelessWidget {
   }
 
   bool _isDataUploadedForStep(RequestModel model) {
-    if (model.currentStep == 1) return true;
-    if (model.currentStep == 2) {
-      return model.step2DisplayData.isNotEmpty || model.step2Images.isNotEmpty;
+    final step = model.currentStep;
+
+    // Step 1: Data is filled by the user during registration/submission.
+    // Check that at least the key personal/loan fields are present.
+    if (step == 1) {
+      final d = model.step1DisplayData;
+      // Must have at least name and one of: phone, nationalId, salary, amount
+      return d.containsKey('الاسم الكامل') &&
+          (d.containsKey('رقم الجوال') ||
+           d.containsKey('رقم الهوية') ||
+           d.containsKey('الراتب الصافي') ||
+           d.containsKey('مبلغ القرض المطلوب'));
     }
-    if (model.currentStep == 3) {
-      // Step 3 does not expect any payment receipt upload from the client.
-      return true;
+
+    // Step 2: User must have submitted the formal request form with their data
+    if (step == 2) {
+      final hasFormData = model.step2DisplayData.isNotEmpty;
+      final hasImages = model.step2Images.isNotEmpty;
+      return hasFormData || hasImages;
     }
+
+    // Step 3: User must have uploaded a payment receipt OR admin can confirm
+    // delivery manually. Check for a receipt field in raw data.
+    if (step == 3) {
+      final raw = model.raw;
+      final hasReceipt = raw['paymentReceiptUrl'] != null ||
+          raw['receiptUrl'] != null ||
+          raw['receipt'] != null ||
+          raw['paymentProof'] != null ||
+          raw['transfer_receipt'] != null;
+      // If no receipt expected from client (admin-side confirmation), allow it.
+      // But only if we're actually on step 3 (data has been uploaded in steps 1&2).
+      return hasReceipt || (model.step1DisplayData.isNotEmpty && model.step2DisplayData.isNotEmpty);
+    }
+
     return true;
   }
 
@@ -769,7 +796,33 @@ class RequestDetailsPage extends StatelessWidget {
                   ),
                 ),
               )
-            else ...[
+            else if (!canAccept)
+              // Data not yet uploaded by client — show waiting indicator
+              Expanded(
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.hourglass_empty_rounded, color: Colors.grey.shade500, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'في انتظار رفع البيانات من العميل',
+                        style: AppTextStyles.readexMedium14.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else ...[ 
               // Reject Button
               GestureDetector(
                 onTap: () async {
