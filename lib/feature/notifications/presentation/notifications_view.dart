@@ -103,65 +103,64 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isUnread = !notification.isRead;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE6E8F3).withValues(alpha: 0.6),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              spreadRadius: 0,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Icon (on the right in RTL)
+            // Unread blue dot — on the RIGHT side in RTL (leading)
             Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF3F4F9),
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.notifications_none,
-                color: Color(0xFF6B65B5),
-                size: 24,
+                color: isUnread ? const Color(0xFF6B65B5) : Colors.transparent,
               ),
             ),
-            const SizedBox(width: 16),
-            // Content
+            const SizedBox(width: 12),
+            // Text content — expands to fill middle
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align to right in RTL
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     notification.title.trim(),
                     textAlign: TextAlign.start,
                     style: AppTextStyles.readexSemiBold14.copyWith(
-                      color: const Color(0xFF1F1F39), // Always dark like Image 2
-                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1F1F39),
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (notification.body.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                  if (notification.body.trim().isNotEmpty) ...[
+                    const SizedBox(height: 4),
                     Text(
                       notification.body.trim(),
                       textAlign: TextAlign.start,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.readexRegular12.copyWith(
                         color: const Color(0xFF9E9EAF),
-                        height: 1.5,
+                        height: 1.4,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   Text(
                     notification.timeAgoArabic,
                     textAlign: TextAlign.start,
@@ -173,19 +172,20 @@ class _NotificationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Unread Dot (on the left in RTL)
-            if (isUnread)
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6B65B5),
-                  shape: BoxShape.circle,
-                ),
-              )
-            else
-              const SizedBox(width: 8),
+            // Bell icon — on the LEFT side in RTL (trailing)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFF3F4F9),
+              ),
+              child: Icon(
+                Icons.notifications_none_rounded,
+                color: const Color(0xFF6B65B5),
+                size: 20,
+              ),
+            ),
           ],
         ),
       ),
