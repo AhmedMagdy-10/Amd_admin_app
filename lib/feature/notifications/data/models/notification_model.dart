@@ -23,9 +23,15 @@ class NotificationModel {
       parsedTime = DateTime.tryParse(data['timestamp']);
     }
 
+    String title = data['title']?.toString() ?? '';
+    final reqId = data['requestId']?.toString() ?? data['request_id']?.toString() ?? data['reqId']?.toString();
+    if (reqId != null && reqId.isNotEmpty && !title.contains('طلب رقم')) {
+      title = '$title - طلب رقم #$reqId';
+    }
+
     return NotificationModel(
       id: docId,
-      title: data['title']?.toString() ?? '',
+      title: title,
       body: data['body']?.toString() ?? '',
       timestamp: parsedTime,
       isRead: data['isRead'] == true,

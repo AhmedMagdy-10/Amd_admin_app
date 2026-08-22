@@ -73,9 +73,18 @@ class FirebaseMessagingService {
       final android = message.notification?.android;
 
       if (notification != null) {
+        String title = notification.title ?? '';
+        
+        // Try to get requestId from data payload to append to title
+        final data = message.data;
+        final reqId = data['requestId'] ?? data['request_id'] ?? data['reqId'];
+        if (reqId != null && reqId.toString().isNotEmpty && !title.contains('طلب رقم')) {
+          title = '$title - طلب رقم #${reqId.toString()}';
+        }
+
         _localNotifications.show(
           notification.hashCode,
-          notification.title,
+          title,
           notification.body,
           NotificationDetails(
             android: AndroidNotificationDetails(
