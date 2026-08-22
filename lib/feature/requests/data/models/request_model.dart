@@ -222,11 +222,34 @@ class RequestModel {
   }
 
   /// Raw data submitted by the client in Step 2 (stored under requestData sub-map).
+  /// Returns EMPTY MAP if no step2-specific data has been submitted yet.
   Map<String, dynamic> get step2RawData {
     final v = raw['finalRequestData'] ?? raw['requestData'] ?? raw['step2Data'] ?? raw['step2'];
     if (v is Map) return _safeMap(v);
-    // If step2 data is flattened at top-level raw map
-    return raw;
+    // Do NOT fall back to raw — that would make step2 always appear as "submitted"
+    return {};
+  }
+
+  /// Returns true only if the client has genuinely submitted Step 2 form data.
+  bool get hasStep2Data {
+    // First check: do we have a specific step2 sub-map?
+    final hasSubMap = raw['finalRequestData'] != null ||
+        raw['requestData'] != null ||
+        raw['step2Data'] != null ||
+        raw['step2'] != null;
+    if (hasSubMap) return true;
+
+    // Second check: are there step2-specific keys at top-level?
+    // These keys only appear after step2 is submitted by the client
+    final step2SpecificKeys = [
+      'commodityType', 'commodity', 'IBAN', 'iban',
+      'رقم الحساب البنكي', 'السلعة المختارة', 'finalRequest',
+      'step2Submitted', 'requestSubmitted',
+    ];
+    for (final k in step2SpecificKeys) {
+      if (raw[k] != null && raw[k].toString().trim().isNotEmpty) return true;
+    }
+    return false;
   }
 
   /// Formatted map of all Step 2 fields ("تقديم طلب") submitted by the client.
@@ -289,12 +312,16 @@ class RequestModel {
 
   /// Document & Image attachments uploaded in Step 2.
   Map<String, String> get step2Images {
+    // Only look inside the step2-specific sub-map, NOT in raw or the top-level images map.
+    // Falling back to raw[k] or images[k] would cause false positives (step1 images counted as step2).
+    if (!hasStep2Data) return {};
+
     final map = <String, String>{};
     final data = step2RawData;
 
     void check(String label, List<String> keys) {
       for (final k in keys) {
-        final v = data[k] ?? raw[k] ?? images[k];
+        final v = data[k];
         if (v != null && v.toString().trim().isNotEmpty && v.toString().startsWith('http')) {
           map[label] = v.toString().trim();
           break;

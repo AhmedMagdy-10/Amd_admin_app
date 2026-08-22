@@ -658,11 +658,9 @@ class RequestDetailsPage extends StatelessWidget {
   bool _isDataUploadedForStep(RequestModel model) {
     final step = model.currentStep;
 
-    // Step 1: Data is filled by the user during registration/submission.
-    // Check that at least the key personal/loan fields are present.
+    // Step 1: Data is filled during registration — check key personal fields exist
     if (step == 1) {
       final d = model.step1DisplayData;
-      // Must have at least name and one of: phone, nationalId, salary, amount
       return d.containsKey('الاسم الكامل') &&
           (d.containsKey('رقم الجوال') ||
            d.containsKey('رقم الهوية') ||
@@ -670,15 +668,12 @@ class RequestDetailsPage extends StatelessWidget {
            d.containsKey('مبلغ القرض المطلوب'));
     }
 
-    // Step 2: User must have submitted the formal request form with their data
+    // Step 2: Client must have submitted the formal request form
     if (step == 2) {
-      final hasFormData = model.step2DisplayData.isNotEmpty;
-      final hasImages = model.step2Images.isNotEmpty;
-      return hasFormData || hasImages;
+      return model.hasStep2Data || model.step2Images.isNotEmpty;
     }
 
-    // Step 3: User must have uploaded a payment receipt OR admin can confirm
-    // delivery manually. Check for a receipt field in raw data.
+    // Step 3: Allow admin confirmation once both step1 & step2 are genuinely filled
     if (step == 3) {
       final raw = model.raw;
       final hasReceipt = raw['paymentReceiptUrl'] != null ||
@@ -686,9 +681,7 @@ class RequestDetailsPage extends StatelessWidget {
           raw['receipt'] != null ||
           raw['paymentProof'] != null ||
           raw['transfer_receipt'] != null;
-      // If no receipt expected from client (admin-side confirmation), allow it.
-      // But only if we're actually on step 3 (data has been uploaded in steps 1&2).
-      return hasReceipt || (model.step1DisplayData.isNotEmpty && model.step2DisplayData.isNotEmpty);
+      return hasReceipt || model.hasStep2Data;
     }
 
     return true;
