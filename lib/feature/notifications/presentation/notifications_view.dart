@@ -124,17 +124,22 @@ class _NotificationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Unread blue dot — on the RIGHT side in RTL (leading)
+            // Bell icon — FIRST in Row = appears on RIGHT side in RTL
             Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: isUnread ? const Color(0xFF6B65B5) : Colors.transparent,
+                color: Color(0xFFF3F4F9),
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: Color(0xFF6B65B5),
+                size: 20,
               ),
             ),
             const SizedBox(width: 12),
-            // Text content — expands to fill middle
+            // Text content — expands in the middle
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,18 +177,13 @@ class _NotificationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Bell icon — on the LEFT side in RTL (trailing)
+            // Unread blue dot — LAST in Row = appears on LEFT side in RTL
             Container(
-              width: 40,
-              height: 40,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFF3F4F9),
-              ),
-              child: Icon(
-                Icons.notifications_none_rounded,
-                color: const Color(0xFF6B65B5),
-                size: 20,
+                color: isUnread ? const Color(0xFF6B65B5) : Colors.transparent,
               ),
             ),
           ],
