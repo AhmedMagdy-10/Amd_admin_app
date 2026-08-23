@@ -46,7 +46,7 @@ class _ChatsListContent extends StatelessWidget {
             child: TextField(
               onChanged: (value) => context.read<ClientsCubit>().search(value),
               decoration: InputDecoration(
-                hintText: 'ابحث عن عميل...',
+                hintText: 'ابحث بالاسم أو رقم الطلب...',
                 hintStyle: TextStyle(
                   fontFamily: 'ReadexPro',
                   color: Colors.grey.shade400,

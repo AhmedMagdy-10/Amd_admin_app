@@ -205,9 +205,11 @@ class ClientsCubit extends Cubit<ClientsState> {
   List<ChatClient> _filter(List<ChatClient> clients, String query) {
     if (query.isEmpty) return clients;
     final lowerQuery = query.toLowerCase();
-    return clients
-        .where((c) => c.name.toLowerCase().contains(lowerQuery))
-        .toList();
+    return clients.where((c) {
+      final nameMatches = c.name.toLowerCase().contains(lowerQuery);
+      final reqMatches = c.requestNumber != null && c.requestNumber!.toLowerCase().contains(lowerQuery);
+      return nameMatches || reqMatches;
+    }).toList();
   }
 
   void search(String query) {
