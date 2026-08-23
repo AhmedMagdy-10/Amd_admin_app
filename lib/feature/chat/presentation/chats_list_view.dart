@@ -381,12 +381,9 @@ class _LastMessageBuilder extends StatelessWidget {
                       children: hasReq
                           ? [
                               TextSpan(
-                                text: '  •  طلب ${client.requestNumber}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                  color: color.withValues(alpha: 0.8), // using withValues instead of withOpacity
-                                ),
+                                text: ' (طلب ${client.requestNumber})',
+                                // Uses the exact same style as the parent TextSpan (the name)
+                                // since we don't override the style here.
                               ),
                             ]
                           : [],
