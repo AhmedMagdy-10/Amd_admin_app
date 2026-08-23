@@ -33,36 +33,20 @@ class ClientsCubit extends Cubit<ClientsState> {
 
   void _initStream() {
     emit(ClientsLoading());
-
-    // Read clients from ALL known request collections to build name map
-    // then merge with chats collection to show clients that have chats
     _buildClientsList();
   }
 
   Future<void> _buildClientsList() async {
     try {
-      // ─── KEY FIX ──────────────────────────────────────────────────────────────
-      // The chats/{userId} document is a "phantom document" — Firestore creates
-      // the path automatically when messages are written to the sub-collection but
-      // the parent document itself has NO fields and therefore does NOT appear in
-      // collection('chats').snapshots(). That's why the list was always empty.
-      //
-      // Solution: use collectionGroup('messages') to scan ALL messages sub-collections
-      // across all conversations, extract the unique parent doc IDs (= userId), and
-      // build the client list from those IDs.
-      // ──────────────────────────────────────────────────────────────────────────
-
       _clientsSub = _firestore
           .collectionGroup('messages')
           .snapshots()
           .listen((snapshot) async {
         if (isClosed) return;
 
-        // Collect unique conversation IDs (parent doc of each message = userId)
+        // Collect unique conversation IDs
         final Set<String> seenIds = {};
         for (final doc in snapshot.docs) {
-          // doc.reference.parent = 'messages' collection
-          // doc.reference.parent.parent = 'chats/{userId}' document
           final chatDocRef = doc.reference.parent.parent;
           if (chatDocRef != null) {
             seenIds.add(chatDocRef.id);
@@ -72,7 +56,7 @@ class ClientsCubit extends Cubit<ClientsState> {
         final List<ChatClient> clientsList = [];
 
         for (final clientId in seenIds) {
-          String name = clientId; // Default fallback = the ID itself
+          String name = clientId;
 
           // 1. Try users/{clientId}
           try {
@@ -140,10 +124,34 @@ class ClientsCubit extends Cubit<ClientsState> {
             } catch (_) {}
           }
 
-          clientsList.add(ChatClient(id: clientId, name: name));
+          // 3. Fetch last message timestamp for sorting
+          DateTime? lastTime;
+          try {
+            final lastMsgSnap = await _firestore
+                .collection('chats')
+                .doc(clientId)
+                .collection('messages')
+                .orderBy('timestamp', descending: true)
+                .limit(1)
+                .get();
+            if (lastMsgSnap.docs.isNotEmpty) {
+              final ts = lastMsgSnap.docs.first.data()['timestamp'];
+              if (ts is Timestamp) lastTime = ts.toDate();
+            }
+          } catch (_) {}
+
+          clientsList.add(ChatClient(id: clientId, name: name, lastMessageTime: lastTime));
         }
 
         if (isClosed) return;
+
+        // Sort by last message time — most recent first
+        clientsList.sort((a, b) {
+          if (a.lastMessageTime == null && b.lastMessageTime == null) return 0;
+          if (a.lastMessageTime == null) return 1;
+          if (b.lastMessageTime == null) return -1;
+          return b.lastMessageTime!.compareTo(a.lastMessageTime!);
+        });
 
         String currentQuery = '';
         if (state is ClientsLoaded) {
@@ -158,6 +166,32 @@ class ClientsCubit extends Cubit<ClientsState> {
       });
     } catch (e) {
       if (!isClosed) emit(ClientsError(e.toString()));
+    }
+  }
+
+  /// Delete an entire chat conversation (all messages under chats/{clientId})
+  Future<void> deleteChat(String clientId) async {
+    try {
+      final messagesRef = _firestore
+          .collection('chats')
+          .doc(clientId)
+          .collection('messages');
+
+      // Delete in batches of 100
+      QuerySnapshot snapshot;
+      do {
+        snapshot = await messagesRef.limit(100).get();
+        final batch = _firestore.batch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      } while (snapshot.docs.length == 100);
+
+      // Also delete the parent chat document if it exists
+      await _firestore.collection('chats').doc(clientId).delete();
+    } catch (e) {
+      // Ignore — stream will auto-update UI
     }
   }
 
