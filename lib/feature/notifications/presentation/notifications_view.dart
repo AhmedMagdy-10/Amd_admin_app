@@ -20,7 +20,40 @@ class NotificationsView extends StatelessWidget {
           'الإشعارات',
           style: AppTextStyles.readexSemiBold20.copyWith(color: const Color(0xFF33334D)),
         ),
-        leading: const SizedBox.shrink(),
+        leading: IconButton(
+          icon: const Icon(Icons.delete_sweep, color: Color(0xFF33334D)),
+          onPressed: () {
+            // Confirm clear all
+            showDialog(
+              context: context,
+              builder: (ctx) => Directionality(
+                textDirection: TextDirection.rtl,
+                child: AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  title: const Text('حذف الكل', style: TextStyle(fontFamily: 'ReadexPro')),
+                  content: const Text('هل أنت متأكد من حذف جميع الإشعارات؟', style: TextStyle(fontFamily: 'ReadexPro')),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('إلغاء', style: TextStyle(fontFamily: 'ReadexPro', color: Colors.grey)),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4B4B),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () {
+                        context.read<NotificationsCubit>().clearAll();
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('حذف', style: TextStyle(fontFamily: 'ReadexPro', color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -72,13 +105,29 @@ class NotificationsView extends StatelessWidget {
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notif = notifications[index];
-                return _NotificationCard(
-                  notification: notif,
-                  onTap: () {
-                    if (!notif.isRead) {
-                      context.read<NotificationsCubit>().markAsRead(notif.id);
-                    }
+                return Dismissible(
+                  key: Key(notif.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF4B4B),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.only(left: 24),
+                    child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+                  ),
+                  onDismissed: (_) {
+                    context.read<NotificationsCubit>().deleteNotification(notif.id);
                   },
+                  child: _NotificationCard(
+                    notification: notif,
+                    onTap: () {
+                      // The user specifically requested to delete the notification when clicked/opened.
+                      context.read<NotificationsCubit>().deleteNotification(notif.id);
+                    },
+                  ),
                 );
               },
             );
@@ -128,13 +177,13 @@ class _NotificationCard extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFF3F4F9),
+                color: isUnread ? const Color(0xFFF3F4F9) : const Color(0xFFFAFAFA),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.notifications_none_rounded,
-                color: Color(0xFF6B65B5),
+                color: isUnread ? const Color(0xFF6B65B5) : const Color(0xFFC4C4D4),
                 size: 20,
               ),
             ),
@@ -148,8 +197,8 @@ class _NotificationCard extends StatelessWidget {
                     notification.title.trim(),
                     textAlign: TextAlign.start,
                     style: AppTextStyles.readexSemiBold14.copyWith(
-                      color: const Color(0xFF1F1F39),
-                      fontWeight: FontWeight.w700,
+                      color: isUnread ? const Color(0xFF1F1F39) : const Color(0xFF8E8E9F),
+                      fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
                   if (notification.body.trim().isNotEmpty) ...[
@@ -160,7 +209,7 @@ class _NotificationCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.readexRegular12.copyWith(
-                        color: const Color(0xFF9E9EAF),
+                        color: isUnread ? const Color(0xFF9E9EAF) : const Color(0xFFC4C4D4),
                         height: 1.4,
                       ),
                     ),
@@ -170,7 +219,7 @@ class _NotificationCard extends StatelessWidget {
                     notification.timeAgoArabic,
                     textAlign: TextAlign.start,
                     style: AppTextStyles.readexRegular10.copyWith(
-                      color: const Color(0xFFC4C4D4),
+                      color: const Color(0xFFD4D4E4),
                     ),
                   ),
                 ],

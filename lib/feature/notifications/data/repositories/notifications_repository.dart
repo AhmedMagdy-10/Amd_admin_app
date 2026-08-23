@@ -51,6 +51,37 @@ class NotificationsRepository {
     }
   }
 
+  Future<void> deleteNotification(String id) async {
+    try {
+      await _firestore
+          .collection('admins')
+          .doc('ADMIN-001')
+          .collection('notifications')
+          .doc(id)
+          .delete();
+    } catch (e) {
+      print('Error deleting notification $id: $e');
+    }
+  }
+
+  Future<void> clearAll() async {
+    try {
+      final snap = await _firestore
+          .collection('admins')
+          .doc('ADMIN-001')
+          .collection('notifications')
+          .get();
+      
+      final batch = _firestore.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      print('Error clearing notifications: $e');
+    }
+  }
+
   void dispose() {
     _sub?.cancel();
     _controller.close();
