@@ -358,9 +358,7 @@ class _LastMessageBuilder extends StatelessWidget {
           if (!isMe && !isRead) isUnread = true;
         }
 
-        final displayName = client.requestNumber != null && client.requestNumber!.isNotEmpty && client.requestNumber != client.id
-            ? '${client.name} (طلب ${client.requestNumber})'
-            : client.name;
+        final hasReq = client.requestNumber != null && client.requestNumber!.isNotEmpty && client.requestNumber != client.id;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,16 +367,30 @@ class _LastMessageBuilder extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    displayName,
-                    style: TextStyle(
-                      fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
-                      fontSize: 15,
-                      fontFamily: 'ReadexPro',
-                      color: const Color(0xFF1F1F39),
-                    ),
+                  child: RichText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      text: client.name,
+                      style: TextStyle(
+                        fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
+                        fontSize: 15,
+                        fontFamily: 'ReadexPro',
+                        color: const Color(0xFF1F1F39),
+                      ),
+                      children: hasReq
+                          ? [
+                              TextSpan(
+                                text: '  •  طلب ${client.requestNumber}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                  color: color.withValues(alpha: 0.8), // using withValues instead of withOpacity
+                                ),
+                              ),
+                            ]
+                          : [],
+                    ),
                   ),
                 ),
                 if (timeText.isNotEmpty)
