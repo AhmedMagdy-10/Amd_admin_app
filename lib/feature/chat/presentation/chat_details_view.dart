@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/widgets/custom_toast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../logic/chat_cubit.dart';
@@ -421,13 +423,9 @@ class _ChatBubble extends StatelessWidget {
                       ),
                     ),
                   if (message.text.isNotEmpty && message.text != 'صورة مرفقة')
-                    Text(
-                      message.text,
-                      style: TextStyle(
-                        color: isMe ? Colors.white : Colors.black87,
-                        fontSize: 15,
-                        height: 1.3,
-                      ),
+                    _LinkifiedText(
+                      text: message.text,
+                      isMe: isMe,
                     ),
                 ],
               ),
@@ -450,5 +448,88 @@ class _ChatBubble extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ── Linkified Text ─────────────────────────────────────────────────────────────
+// Splits message text into plain segments and URL segments.
+// URLs are rendered as tappable underlined links.
+
+class _LinkifiedText extends StatelessWidget {
+  final String text;
+  final bool isMe;
+
+  const _LinkifiedText({required this.text, required this.isMe});
+
+  static final _urlRegex = RegExp(
+    r'(https?://[^\s]+)',
+    caseSensitive: false,
+  );
+
+  Future<void> _launch(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = <TextSpan>[];
+    int lastEnd = 0;
+
+    for (final match in _urlRegex.allMatches(text)) {
+      // Add plain text before the URL
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: TextStyle(
+            color: isMe ? Colors.white : Colors.black87,
+            fontSize: 15,
+            height: 1.3,
+          ),
+        ));
+      }
+      // Add the URL as a tappable link
+      final url = match.group(0)!;
+      spans.add(TextSpan(
+        text: url,
+        style: TextStyle(
+          color: isMe ? Colors.lightBlueAccent : const Color(0xFF1565C0),
+          fontSize: 15,
+          height: 1.3,
+          decoration: TextDecoration.underline,
+          decorationColor: isMe ? Colors.lightBlueAccent : const Color(0xFF1565C0),
+        ),
+        recognizer: TapGestureRecognizer()..onTap = () => _launch(url),
+      ));
+      lastEnd = match.end;
+    }
+
+    // Add any remaining plain text after the last URL
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: TextStyle(
+          color: isMe ? Colors.white : Colors.black87,
+          fontSize: 15,
+          height: 1.3,
+        ),
+      ));
+    }
+
+    // If no URLs found, just render as plain text
+    if (spans.isEmpty) {
+      return Text(
+        text,
+        style: TextStyle(
+          color: isMe ? Colors.white : Colors.black87,
+          fontSize: 15,
+          height: 1.3,
+        ),
+      );
+    }
+
+    return RichText(text: TextSpan(children: spans));
   }
 }
