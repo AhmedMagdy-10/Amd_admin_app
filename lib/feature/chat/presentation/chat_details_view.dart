@@ -101,10 +101,14 @@ class _ChatContentState extends State<_ChatContent> {
 
   @override
   Widget build(BuildContext context) {
+    final displayName = widget.client.requestNumber != null && widget.client.requestNumber!.isNotEmpty && widget.client.requestNumber != widget.client.id
+        ? '${widget.client.name} (طلب ${widget.client.requestNumber})'
+        : widget.client.name;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(widget.client.name),
+        title: Text(displayName, style: const TextStyle(fontSize: 16, fontFamily: 'ReadexPro')),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,

@@ -93,7 +93,8 @@ class ClientsCubit extends Cubit<ClientsState> {
           } catch (_) {}
 
           // 2. If still just the raw ID, try FinancingRequests collection
-          if (name == clientId) {
+          String? reqNumber;
+          if (name == clientId || true) { // Always query to get requestNumber
             try {
               final reqSnap = await _firestore
                   .collection('FinancingRequests')
@@ -101,24 +102,30 @@ class ClientsCubit extends Cubit<ClientsState> {
                   .limit(1)
                   .get();
               if (reqSnap.docs.isNotEmpty) {
-                final data = reqSnap.docs.first.data();
-                final eligibility =
-                    data['eligibilityData'] as Map<String, dynamic>?;
-                final firstName =
-                    (eligibility?['firstName'] ?? data['firstName'] ?? data['first_name'] ?? '')
+                final doc = reqSnap.docs.first;
+                final data = doc.data();
+                
+                // Get request number (requestId or just use a fallback)
+                final eligibility = data['eligibilityData'] as Map<String, dynamic>?;
+                reqNumber = (eligibility?['requestId'] ?? data['requestId'] ?? doc.id).toString();
+
+                if (name == clientId) {
+                  final firstName =
+                      (eligibility?['firstName'] ?? data['firstName'] ?? data['first_name'] ?? '')
+                          .toString()
+                          .trim();
+                  final lastName =
+                      (eligibility?['lastName'] ?? data['lastName'] ?? data['last_name'] ?? '')
+                          .toString()
+                          .trim();
+                  if (firstName.isNotEmpty || lastName.isNotEmpty) {
+                    name = '$firstName $lastName'.trim();
+                  } else {
+                    final sn = (data['name'] ?? data['fullName'] ?? data['clientName'] ?? '')
                         .toString()
                         .trim();
-                final lastName =
-                    (eligibility?['lastName'] ?? data['lastName'] ?? data['last_name'] ?? '')
-                        .toString()
-                        .trim();
-                if (firstName.isNotEmpty || lastName.isNotEmpty) {
-                  name = '$firstName $lastName'.trim();
-                } else {
-                  final sn = (data['name'] ?? data['fullName'] ?? data['clientName'] ?? '')
-                      .toString()
-                      .trim();
-                  if (sn.isNotEmpty) name = sn;
+                    if (sn.isNotEmpty) name = sn;
+                  }
                 }
               }
             } catch (_) {}
@@ -140,7 +147,7 @@ class ClientsCubit extends Cubit<ClientsState> {
             }
           } catch (_) {}
 
-          clientsList.add(ChatClient(id: clientId, name: name, lastMessageTime: lastTime));
+          clientsList.add(ChatClient(id: clientId, name: name, lastMessageTime: lastTime, requestNumber: reqNumber));
         }
 
         if (isClosed) return;

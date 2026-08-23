@@ -358,6 +358,10 @@ class _LastMessageBuilder extends StatelessWidget {
           if (!isMe && !isRead) isUnread = true;
         }
 
+        final displayName = client.requestNumber != null && client.requestNumber!.isNotEmpty && client.requestNumber != client.id
+            ? '${client.name} (طلب ${client.requestNumber})'
+            : client.name;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -366,10 +370,10 @@ class _LastMessageBuilder extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    client.name,
+                    displayName,
                     style: TextStyle(
                       fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
-                      fontSize: 16,
+                      fontSize: 15,
                       fontFamily: 'ReadexPro',
                       color: const Color(0xFF1F1F39),
                     ),
