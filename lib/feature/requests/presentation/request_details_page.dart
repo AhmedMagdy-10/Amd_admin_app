@@ -1676,6 +1676,7 @@ class _StepDetailSheet extends StatelessWidget {
                       width: double.infinity,
                       height: 200,
                       fit: BoxFit.cover,
+                      memCacheWidth: 600, // Optimize memory
                       placeholder: (context, url) => Container(
                         height: 200,
                         color: Colors.grey.shade50,

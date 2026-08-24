@@ -19,90 +19,99 @@ class RequestsBody extends StatelessWidget {
       color: const Color(0xFF4A4499),
       backgroundColor: Colors.white,
       onRefresh: () => context.read<RequestsCubit>().refresh(),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
-            const CustomHeader(
-              name: 'حاتم سليمان',
-              role: 'صباح الخير،',
-              textColor: Color(0xFF4A4499),
-              subtitleColor: Colors.grey,
-              iconColor: Color(0xFF4A4499),
-              iconBgColor: Colors.white,
-              notificationCount: 1,
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: RequestsSummaryChart(),
-            ),
-            const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
-              child: StatusCardsRow(),
-            ),
-            const SizedBox(height: 16),
-            const FilterChipsRow(),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: BlocBuilder<RequestsCubit, RequestsState>(
-                builder: (context, state) {
-                  if (state is RequestsLoading) {
-                    return const Padding(
-                      padding: EdgeInsets.all(20.0),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF4A4499),
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (state is RequestsError) {
-                    return Center(
-                      child: Text(
-                        'حدث خطأ: ${state.message}',
-                        style: const TextStyle(
-                          fontFamily: 'ReadexPro',
-                          color: Colors.red,
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (state is RequestsLoaded) {
-                    final requests = state.requests;
-
-                    if (requests.isEmpty) {
-                      return _EmptyState(filter: state.selectedFilter);
-                    }
-
-                    return Column(
-                      children: requests.map((model) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: RequestItemCard(
-                            name: model.name,
-                            docId: model.id,
-                            collection: model.collection,
-                            displayId: model.requestId,
-                            date: model.date,
-                            status: model.status,
-                            currentStep: model.currentStep,
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  }
-
-                  return const SizedBox.shrink();
-                },
+      child: BlocBuilder<RequestsCubit, RequestsState>(
+        builder: (context, state) {
+          return CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const CustomHeader(
+                      name: 'حاتم سليمان',
+                      role: 'صباح الخير،',
+                      textColor: Color(0xFF4A4499),
+                      subtitleColor: Colors.grey,
+                      iconColor: Color(0xFF4A4499),
+                      iconBgColor: Colors.white,
+                      notificationCount: 1,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: RequestsSummaryChart(),
+                    ),
+                    const SizedBox(height: 16),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: StatusCardsRow(),
+                    ),
+                    const SizedBox(height: 16),
+                    const FilterChipsRow(),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
+              if (state is RequestsLoading)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF4A4499),
+                      ),
+                    ),
+                  ),
+                )
+              else if (state is RequestsError)
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: Text(
+                      'حدث خطأ: ${state.message}',
+                      style: const TextStyle(
+                        fontFamily: 'ReadexPro',
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                )
+              else if (state is RequestsLoaded)
+                if (state.requests.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: _EmptyState(filter: state.selectedFilter),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final model = state.requests[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: RequestItemCard(
+                              name: model.name,
+                              docId: model.id,
+                              collection: model.collection,
+                              displayId: model.requestId,
+                              date: model.date,
+                              status: model.status,
+                              currentStep: model.currentStep,
+                            ),
+                          );
+                        },
+                        childCount: state.requests.length,
+                      ),
+                    ),
+                  ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 32),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

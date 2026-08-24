@@ -117,6 +117,7 @@ class ReceiptViewerSheet extends StatelessWidget {
                                   constraints.maxWidth -
                                   32, // 16px padding on both sides
                               fit: BoxFit.fitWidth,
+                              memCacheWidth: 800, // Optimize memory for large receipts
                               placeholder: (context, url) => const Center(
                                 child: CircularProgressIndicator(
                                   color: Color(0xFF6A5ACD),
