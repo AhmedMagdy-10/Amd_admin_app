@@ -68,5 +68,7 @@
 	</array>
 	<key>NSContactsUsageDescription</key>
 	<string>This app requires contacts access to send contact information in chat.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
